@@ -1,0 +1,58 @@
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" fill="#fafafa" rx="12"/>
+  
+  <!-- Header -->
+  <rect width="600" height="60" fill="white" rx="12" ry="0"/>
+  <rect width="600" height="1" y="60" fill="#e5e7eb"/>
+  
+  <!-- ByteTide Logo/Brand -->
+  <rect x="24" y="18" width="24" height="24" fill="#0f172a" rx="4"/>
+  <text x="60" y="35" fill="#0f172a" font-family="system-ui, sans-serif" font-size="16" font-weight="600">ByteTide</text>
+  
+  <!-- User Avatar -->
+  <circle cx="552" cy="30" r="16" fill="#e5e7eb"/>
+  
+  <!-- Main Content - Migration Status -->
+  <rect x="24" y="84" width="552" height="292" fill="white" rx="8"/>
+  
+  <!-- Header -->
+  <text x="44" y="112" fill="#0f172a" font-family="system-ui, sans-serif" font-size="24" font-weight="600">Migration Progress</text>
+  <text x="44" y="132" fill="#64748b" font-family="system-ui, sans-serif" font-size="14">Fashion Boutique - WooCommerce to Shopify</text>
+  
+  <!-- Overall Progress -->
+  <rect x="44" y="156" width="508" height="60" fill="#f8fafc" rx="8"/>
+  <text x="60" y="178" fill="#0f172a" font-family="system-ui, sans-serif" font-size="16" font-weight="600">Overall Progress</text>
+  <text x="60" y="194" fill="#64748b" font-family="system-ui, sans-serif" font-size="14">85% Complete • Est. completion: 2 days</text>
+  <text x="516" y="178" fill="#0f172a" font-family="system-ui, sans-serif" font-size="18" font-weight="700">85%</text>
+  <rect x="60" y="200" width="400" height="6" fill="#e2e8f0" rx="3"/>
+  <rect x="60" y="200" width="340" height="6" fill="#22c55e" rx="3"/>
+  
+  <!-- Detailed Steps -->
+  <text x="44" y="248" fill="#0f172a" font-family="system-ui, sans-serif" font-size="18" font-weight="600">Migration Steps</text>
+  
+  <!-- Step 1 - Complete -->
+  <rect x="44" y="264" width="508" height="36" fill="transparent"/>
+  <circle cx="60" cy="282" r="6" fill="#22c55e"/>
+  <path d="M57 282 L59 284 L63 278" stroke="white" stroke-width="2" fill="none"/>
+  <text x="80" y="286" fill="#0f172a" font-family="system-ui, sans-serif" font-size="14" font-weight="500">Data extraction and validation</text>
+  <text x="500" y="286" fill="#22c55e" font-family="system-ui, sans-serif" font-size="12" font-weight="600">COMPLETE</text>
+  
+  <!-- Step 2 - Complete -->
+  <rect x="44" y="304" width="508" height="36" fill="transparent"/>
+  <circle cx="60" cy="322" r="6" fill="#22c55e"/>
+  <path d="M57 322 L59 324 L63 318" stroke="white" stroke-width="2" fill="none"/>
+  <text x="80" y="326" fill="#0f172a" font-family="system-ui, sans-serif" font-size="14" font-weight="500">Product catalog migration</text>
+  <text x="500" y="326" fill="#22c55e" font-family="system-ui, sans-serif" font-size="12" font-weight="600">COMPLETE</text>
+  
+  <!-- Step 3 - In Progress -->
+  <rect x="44" y="344" width="508" height="36" fill="transparent"/>
+  <circle cx="60" cy="362" r="6" fill="#f59e0b"/>
+  <rect x="56" y="358" width="8" height="8" fill="#f59e0b" rx="1"/>
+  <text x="80" y="366" fill="#0f172a" font-family="system-ui, sans-serif" font-size="14" font-weight="500">SEO redirects and URL mapping</text>
+  <text x="480" y="366" fill="#f59e0b" font-family="system-ui, sans-serif" font-size="12" font-weight="600">IN PROGRESS</text>
+  
+  <!-- Activity indicator -->
+  <rect x="56" y="358" width="8" height="8" fill="#f59e0b" opacity="0.7" rx="1">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+  </rect>
+</svg>

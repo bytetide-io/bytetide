@@ -1,0 +1,56 @@
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" fill="#fafafa" rx="12"/>
+  
+  <!-- Header -->
+  <rect width="600" height="60" fill="white" rx="12" ry="0"/>
+  <rect width="600" height="1" y="60" fill="#e5e7eb"/>
+  
+  <!-- ByteTide Logo/Brand -->
+  <rect x="24" y="18" width="24" height="24" fill="#0f172a" rx="4"/>
+  <text x="60" y="35" fill="#0f172a" font-family="system-ui, sans-serif" font-size="16" font-weight="600">ByteTide</text>
+  
+  <!-- User Avatar -->
+  <circle cx="552" cy="30" r="16" fill="#e5e7eb"/>
+  
+  <!-- Sidebar Navigation -->
+  <rect x="24" y="84" width="200" height="292" fill="white" rx="8"/>
+  
+  <!-- Nav Items -->
+  <rect x="36" y="100" width="176" height="36" fill="#0f172a" rx="6"/>
+  <text x="48" y="122" fill="white" font-family="system-ui, sans-serif" font-size="14" font-weight="500">Projects</text>
+  
+  <rect x="36" y="144" width="176" height="36" fill="transparent" rx="6"/>
+  <text x="48" y="166" fill="#64748b" font-family="system-ui, sans-serif" font-size="14" font-weight="500">Team</text>
+  
+  <rect x="36" y="188" width="176" height="36" fill="transparent" rx="6"/>
+  <text x="48" y="210" fill="#64748b" font-family="system-ui, sans-serif" font-size="14" font-weight="500">Settings</text>
+  
+  <!-- Main Content Area -->
+  <rect x="248" y="84" width="328" height="292" fill="white" rx="8"/>
+  
+  <!-- Page Header -->
+  <text x="268" y="112" fill="#0f172a" font-family="system-ui, sans-serif" font-size="24" font-weight="600">Active Projects</text>
+  <text x="268" y="132" fill="#64748b" font-family="system-ui, sans-serif" font-size="14">Manage your Shopify migration projects</text>
+  
+  <!-- Project Cards -->
+  <rect x="268" y="156" width="296" height="80" fill="#f8fafc" rx="6" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="280" y="168" width="8" height="8" fill="#22c55e" rx="4"/>
+  <text x="296" y="178" fill="#0f172a" font-family="system-ui, sans-serif" font-size="16" font-weight="600">Fashion Boutique Migration</text>
+  <text x="296" y="194" fill="#64748b" font-family="system-ui, sans-serif" font-size="14">WooCommerce → Shopify • 12,450 products</text>
+  <text x="296" y="210" fill="#22c55e" font-family="system-ui, sans-serif" font-size="12" font-weight="500">IN PROGRESS</text>
+  <text x="520" y="178" fill="#64748b" font-family="system-ui, sans-serif" font-size="12">85%</text>
+  
+  <rect x="268" y="248" width="296" height="80" fill="#f8fafc" rx="6" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="280" y="260" width="8" height="8" fill="#f59e0b" rx="4"/>
+  <text x="296" y="270" fill="#0f172a" font-family="system-ui, sans-serif" font-size="16" font-weight="600">Tech Store Replatform</text>
+  <text x="296" y="286" fill="#64748b" font-family="system-ui, sans-serif" font-size="14">Magento → Shopify • 8,230 products</text>
+  <text x="296" y="302" fill="#f59e0b" font-family="system-ui, sans-serif" font-size="12" font-weight="500">PENDING REVIEW</text>
+  <text x="526" y="270" fill="#64748b" font-family="system-ui, sans-serif" font-size="12">45%</text>
+  
+  <!-- Progress Bars -->
+  <rect x="500" y="188" width="60" height="4" fill="#e2e8f0" rx="2"/>
+  <rect x="500" y="188" width="51" height="4" fill="#22c55e" rx="2"/>
+  
+  <rect x="500" y="280" width="60" height="4" fill="#e2e8f0" rx="2"/>
+  <rect x="500" y="280" width="27" height="4" fill="#f59e0b" rx="2"/>
+</svg>
