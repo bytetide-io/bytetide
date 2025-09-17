@@ -14,6 +14,7 @@ export interface PlatformRequirements {
   description: string | null
   required_files: string[]
   optional_files: string[]
+  allowed_files: string[] | null
   api_requirements: Record<string, string> | null
   plugin: string | null
   items: ItemType[] | null

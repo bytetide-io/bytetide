@@ -170,10 +170,10 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
 
     try {
       for (const uploadedFile of uploadedFiles) {
-        // Upload file to Supabase Storage
-        const fileName = `${project.id}/${Date.now()}-${uploadedFile.name}`
+        // Upload file to Supabase Storage  
+        const fileName = `projects/${project.id}/${Date.now()}-${uploadedFile.name}`
         const { error: uploadError } = await supabase.storage
-          .from('project-files')
+          .from('projects')
           .upload(fileName, uploadedFile.file)
 
         if (uploadError) throw uploadError
@@ -207,7 +207,7 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
 
       // Delete from storage
       const { error: storageError } = await supabase.storage
-        .from('project-files')
+        .from('projects')
         .remove([fileToDelete.file_path])
 
       if (storageError) throw storageError

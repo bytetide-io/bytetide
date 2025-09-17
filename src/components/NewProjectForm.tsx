@@ -69,7 +69,9 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
   }
 
   const platform = platforms.find(p => p.platform === selectedPlatform)
-  const requiresFiles = platform && (platform.required_files.length > 0 || platform.optional_files.length > 0)
+  // Check if it's a custom project (allowed_files is null and no api_requirements)
+  const isCustomProject = platform && (platform.allowed_files === null && !platform.api_requirements)
+  const requiresFiles = platform && ((platform.allowed_files?.length ?? 0) > 0 || platform.required_files.length > 0 || platform.optional_files.length > 0 || isCustomProject)
   const requiresAPI = platform && platform.api_requirements
   const requiresPlugin = platform && platform.plugin
 
@@ -107,24 +109,37 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
     }
 
     if (stepNumber === 3) {
-      if (requiresFiles) {
+      if (requiresFiles && !isCustomProject) {
         if (files.length === 0) {
           newErrors.files = 'Please upload the required files'
         } else {
-          // Check if all required files are mapped
+          // Use allowed_files if available, otherwise fall back to required_files
+          const allowedFiles = platform?.allowed_files || platform?.required_files || []
           const requiredFiles = platform?.required_files || []
-          const mappedRequiredFiles = files
-            .filter(f => f.selectedType && requiredFiles.includes(f.selectedType))
-            .map(f => f.selectedType)
+          
+          if (allowedFiles.length > 0) {
+            // For platforms with allowed_files, check that all uploaded files are valid
+            const invalidFiles = files.filter(f => f.selectedType && !allowedFiles.includes(f.selectedType))
+            if (invalidFiles.length > 0) {
+              newErrors.files = `Invalid file types. Allowed: ${allowedFiles.join(', ')}`
+            }
+          }
+          
+          if (requiredFiles.length > 0) {
+            // Check if all required files are mapped
+            const mappedRequiredFiles = files
+              .filter(f => f.selectedType && requiredFiles.includes(f.selectedType))
+              .map(f => f.selectedType)
 
-          const missingRequired = requiredFiles.filter(rf => !mappedRequiredFiles.includes(rf))
-          if (missingRequired.length > 0) {
-            newErrors.files = `Please map files for: ${missingRequired.join(', ')}`
+            const missingRequired = requiredFiles.filter(rf => !mappedRequiredFiles.includes(rf))
+            if (missingRequired.length > 0) {
+              newErrors.files = `Please map files for: ${missingRequired.join(', ')}`
+            }
           }
 
-          // Check for unmapped files
+          // Check for unmapped files (only if not custom project)
           const unmappedFiles = files.filter(f => !f.selectedType)
-          if (unmappedFiles.length > 0) {
+          if (unmappedFiles.length > 0 && (allowedFiles.length > 0 || requiredFiles.length > 0)) {
             newErrors.files = 'Please select a file type for all uploaded files'
           }
         }
@@ -216,7 +231,7 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
         .insert({
           project_id: projectId,
           file_name: uploadedFile.name,
-          file_type: uploadedFile.selectedType || uploadedFile.type,
+          file_type: uploadedFile.selectedType || (isCustomProject ? 'custom-file' : uploadedFile.type),
           file_path: filePath,
           file_size: uploadedFile.size
         })
@@ -461,14 +476,16 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                {requiresPlugin ? 'Plugin Installation' : requiresAPI ? 'API Configuration' : 'File Upload'}
+                {requiresPlugin ? 'Plugin Installation' : requiresAPI ? 'API Configuration' : isCustomProject ? 'Custom File Upload' : 'File Upload'}
               </h2>
               <p className="text-slate-600">
                 {requiresPlugin
                   ? 'Install our plugin and configure API credentials'
                   : requiresAPI
                     ? 'Configure your API credentials for automated data extraction'
-                    : 'Upload the required files for data migration'
+                    : isCustomProject
+                      ? 'Upload your data files - our team will work with you to understand your data structure'
+                      : 'Upload the required files for data migration'
                 }
               </p>
             </div>
@@ -534,9 +551,11 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
                   maxSize={100}
                   requiredFiles={platform?.required_files || []}
                   optionalFiles={platform?.optional_files || []}
+                  allowedFiles={platform?.allowed_files}
+                  isCustomProject={isCustomProject}
                   onFilesChange={setFiles}
                   error={errors.files}
-                  helpText="Upload the required data files for migration"
+                  helpText={isCustomProject ? "Upload any data files you want to migrate" : "Upload the required data files for migration"}
                 />
               </div>
             )}

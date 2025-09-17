@@ -11,6 +11,8 @@ interface FileUploadProps {
   maxSize?: number // in MB
   requiredFiles?: string[]
   optionalFiles?: string[]
+  allowedFiles?: string[] | null
+  isCustomProject?: boolean
   onFilesChange: (files: UploadedFile[]) => void
   disabled?: boolean
   error?: string
@@ -24,6 +26,8 @@ export function FileUpload({
   maxSize = 50,
   requiredFiles = [],
   optionalFiles = [],
+  allowedFiles = null,
+  isCustomProject = false,
   onFilesChange,
   disabled = false,
   error,
@@ -137,7 +141,25 @@ export function FileUpload({
       )}
 
       {/* File requirements info */}
-      {(requiredFiles.length > 0 || optionalFiles.length > 0) && (
+      {isCustomProject ? (
+        <div className="text-sm text-slate-600">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="font-medium text-blue-800">Custom Project</p>
+            <p className="text-blue-700">You can upload any files you need for your migration. Our team will work with you to understand your data structure.</p>
+          </div>
+        </div>
+      ) : allowedFiles && allowedFiles.length > 0 ? (
+        <div className="text-sm text-slate-600 space-y-1">
+          <div>
+            <span className="font-medium">Allowed file types:</span> {allowedFiles.join(', ')}
+          </div>
+          {requiredFiles.length > 0 && (
+            <div className="text-xs text-slate-500">
+              <span className="font-medium">Required:</span> {requiredFiles.join(', ')}
+            </div>
+          )}
+        </div>
+      ) : (requiredFiles.length > 0 || optionalFiles.length > 0) && (
         <div className="text-sm text-slate-600 space-y-1">
           {requiredFiles.length > 0 && (
             <div>
@@ -250,7 +272,7 @@ export function FileUpload({
                 </div>
                 
                 {/* File type selection */}
-                {(requiredFiles.length > 0 || optionalFiles.length > 0) && (
+                {!isCustomProject && ((allowedFiles?.length ?? 0) > 0 || requiredFiles.length > 0 || optionalFiles.length > 0) && (
                   <div className="space-y-2">
                     <label className="block text-xs font-medium text-slate-600">
                       What type of file is this?
@@ -262,23 +284,35 @@ export function FileUpload({
                       className="block w-full text-sm rounded border border-slate-200 px-2 py-1 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     >
                       <option value="">Select file type...</option>
-                      {requiredFiles.length > 0 && (
-                        <optgroup label="Required Files">
-                          {requiredFiles.map(fileType => (
+                      {allowedFiles && allowedFiles.length > 0 ? (
+                        <optgroup label="Allowed Files">
+                          {allowedFiles.map(fileType => (
                             <option key={fileType} value={fileType}>
                               {fileType}
                             </option>
                           ))}
                         </optgroup>
-                      )}
-                      {optionalFiles.length > 0 && (
-                        <optgroup label="Optional Files">
-                          {optionalFiles.map(fileType => (
-                            <option key={fileType} value={fileType}>
-                              {fileType}
-                            </option>
-                          ))}
-                        </optgroup>
+                      ) : (
+                        <>
+                          {requiredFiles.length > 0 && (
+                            <optgroup label="Required Files">
+                              {requiredFiles.map(fileType => (
+                                <option key={fileType} value={fileType}>
+                                  {fileType}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {optionalFiles.length > 0 && (
+                            <optgroup label="Optional Files">
+                              {optionalFiles.map(fileType => (
+                                <option key={fileType} value={fileType}>
+                                  {fileType}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </>
                       )}
                     </select>
                     {file.selectedType && (
@@ -289,6 +323,13 @@ export function FileUpload({
                         Mapped to {file.selectedType}
                       </p>
                     )}
+                  </div>
+                )}
+                
+                {/* Custom project file info */}
+                {isCustomProject && (
+                  <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded">
+                    <p>This file will be reviewed by our team to understand your data structure.</p>
                   </div>
                 )}
               </div>

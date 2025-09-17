@@ -8,6 +8,7 @@ import { Input } from '@/components/Input'
 import { Button } from '@/components/Button'
 import { Alert } from '@/components/Alert'
 import { supabase } from '@/lib/supabase/client'
+import { getFullUrl } from '@/lib/utils/url'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -79,7 +80,7 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/onboarding`,
+          emailRedirectTo: getFullUrl('/onboarding'),
           data: {
             full_name: formData.fullName,
             phone: formData.phone || null,

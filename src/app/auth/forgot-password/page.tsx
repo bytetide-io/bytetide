@@ -7,6 +7,7 @@ import { Input } from '@/components/Input'
 import { Button } from '@/components/Button'
 import { Alert } from '@/components/Alert'
 import { supabase } from '@/lib/supabase/client'
+import { getFullUrl } from '@/lib/utils/url'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -35,7 +36,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: getFullUrl('/auth/reset-password'),
       })
 
       if (error) {
