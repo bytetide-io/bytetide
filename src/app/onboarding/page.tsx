@@ -28,7 +28,7 @@ export default function OnboardingPage() {
         }
 
         // Check user's organizations
-        const { data: memberships } = await supabase
+        const { data: memberships, error: membershipError } = await supabase
           .from('memberships')
           .select(`
             id,
@@ -40,6 +40,11 @@ export default function OnboardingPage() {
             )
           `)
           .eq('user_id', user.id)
+
+        if (membershipError) {
+          console.error('Error fetching memberships:', membershipError)
+          // Continue execution as user might still need onboarding
+        }
 
         // Check pending invitations
         const { data: invitations } = await supabase

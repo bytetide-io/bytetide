@@ -61,13 +61,14 @@ export default function OrganizationSettingsPage() {
         }
 
         // Get user's current organization membership
-        const { data: membership } = await supabase
+        const { data: membership, error: membershipError } = await supabase
           .from('memberships')
           .select('org_id, role')
           .eq('user_id', user.id)
           .single()
 
-        if (!membership) {
+        if (membershipError || !membership) {
+          console.error('Error fetching membership:', membershipError)
           router.push('/onboarding')
           return
         }

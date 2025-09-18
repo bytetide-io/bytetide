@@ -8,6 +8,7 @@ import { Card } from '@/components/Card'
 import { Alert } from '@/components/Alert'
 import { CustomCsvManager } from '@/components/CustomCsvManager'
 import { supabase } from '@/lib/supabase/client'
+import { useOrganization } from '@/lib/contexts/OrganizationContext'
 import { Project, ProjectFile } from '@/lib/types'
 import clsx from 'clsx'
 
@@ -21,6 +22,7 @@ const STATUS_CONFIG = {
 }
 
 export default function ProjectDetailPage() {
+  const { currentOrganization } = useOrganization()
   const [project, setProject] = useState<Project | null>(null)
   const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,29 +32,23 @@ export default function ProjectDetailPage() {
   const projectId = params.id as string
 
   useEffect(() => {
-    fetchProjectDetails()
-  }, [projectId]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (currentOrganization) {
+      fetchProjectDetails()
+    }
+  }, [projectId, currentOrganization]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProjectDetails = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
-
-      // Get user's organization
-      const { data: membership } = await supabase
-        .from('memberships')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (!membership) throw new Error('User is not part of an organization')
+      if (!currentOrganization) {
+        throw new Error('No organization available')
+      }
 
       // Fetch the project
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .select('*')
         .eq('id', projectId)
-        .eq('org_id', membership.org_id)
+        .eq('org_id', currentOrganization.id)
         .single()
 
       if (projectError) {

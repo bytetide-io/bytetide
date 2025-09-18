@@ -70,6 +70,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
         `)
         .eq('user_id', user.id)
 
+
       if (error) {
         console.error('Error fetching organizations:', error)
         return

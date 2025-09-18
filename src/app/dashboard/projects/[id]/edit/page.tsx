@@ -6,9 +6,11 @@ import { FadeIn } from '@/components/FadeIn'
 import { EditProjectForm } from '@/components/EditProjectForm'
 import { Alert } from '@/components/Alert'
 import { supabase } from '@/lib/supabase/client'
+import { useOrganization } from '@/lib/contexts/OrganizationContext'
 import { Project } from '@/lib/types'
 
 export default function EditProjectPage() {
+  const { currentOrganization } = useOrganization()
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -17,29 +19,23 @@ export default function EditProjectPage() {
   const projectId = params.id as string
 
   useEffect(() => {
-    fetchProject()
-  }, [projectId]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (currentOrganization) {
+      fetchProject()
+    }
+  }, [projectId, currentOrganization]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProject = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
-
-      // Get user's organization
-      const { data: membership } = await supabase
-        .from('memberships')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (!membership) throw new Error('User is not part of an organization')
+      if (!currentOrganization) {
+        throw new Error('No organization available')
+      }
 
       // Fetch the specific project
       const { data: project, error } = await supabase
         .from('projects')
         .select('*')
         .eq('id', projectId)
-        .eq('org_id', membership.org_id)
+        .eq('org_id', currentOrganization.id)
         .single()
 
       if (error) {

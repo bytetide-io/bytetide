@@ -43,7 +43,7 @@ interface Stats {
 
 interface ProjectWithStatus extends Project {
   status_info?: Status
-  platform_info?: { name: string; platform: string }
+  platform_info?: { id: string; name: string }
   creator?: User
 }
 
@@ -79,7 +79,7 @@ export default function DashboardPage() {
           .select(`
             *,
             status_info:status(status, name, description),
-            platform_info:platform_requirements(name, platform),
+            platform_info:platforms!source_platform(id, name),
             creator:users!created_by(id, email, full_name)
           `)
           .eq('org_id', currentOrganization.id)

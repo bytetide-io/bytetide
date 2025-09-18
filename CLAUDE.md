@@ -319,4 +319,421 @@ const { data } = await supabase
 - [ ] User input sanitized and validated
 - [ ] Error messages don't leak sensitive information
 
-This CLAUDE.md ensures ByteTide maintains professional, production-ready code standards across all development activities.
+## 🏆 PREMIUM PRODUCTION-GRADE STANDARDS
+
+### Component Architecture Excellence
+
+#### Component Size & Complexity Rules
+```typescript
+// 🚫 NEVER: Components over 300 lines
+// ✅ ALWAYS: Break down into smaller, focused components
+
+// ❌ BAD: Massive form component
+export function NewProjectForm() {
+  // 954 lines of code... 
+}
+
+// ✅ GOOD: Composed form with focused components
+export function NewProjectForm() {
+  return (
+    <ProjectFormProvider>
+      <BasicInfoStep />
+      <ShopifySetupStep />
+      <FileUploadStep />
+      <ReviewStep />
+    </ProjectFormProvider>
+  )
+}
+```
+
+#### Single Responsibility Principle
+- **One Purpose Per Component**: Each component should do exactly one thing well
+- **Maximum 3 Props for Simple Components**: More props indicate the component is doing too much
+- **Extract Custom Hooks**: Business logic belongs in hooks, not components
+- **Composition Over Inheritance**: Build complex UIs by composing simple components
+
+#### Mandatory Component Structure
+```typescript
+// ✅ REQUIRED: Every component must follow this exact structure
+interface ComponentProps {
+  // 1. Required props first
+  data: SomeType
+  onAction: (data: SomeType) => void
+  
+  // 2. Optional props with defaults
+  variant?: 'primary' | 'secondary'
+  size?: 'sm' | 'md' | 'lg'
+  
+  // 3. Event handlers
+  onClick?: () => void
+  
+  // 4. Standard HTML props last
+  className?: string
+  children?: React.ReactNode
+}
+
+export function Component({ 
+  data, 
+  onAction, 
+  variant = 'primary',
+  size = 'md',
+  onClick,
+  className,
+  children,
+  ...rest 
+}: ComponentProps) {
+  // 1. Hooks at the top (state, context, custom hooks)
+  const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
+  
+  // 2. Computed values
+  const isDisabled = loading || !user
+  
+  // 3. Event handlers
+  const handleClick = useCallback(() => {
+    if (onClick) onClick()
+  }, [onClick])
+  
+  // 4. Effects
+  useEffect(() => {
+    // Side effects here
+  }, [])
+  
+  // 5. Early returns (loading, error, empty states)
+  if (loading) return <LoadingSkeleton />
+  if (!data) return <EmptyState />
+  
+  // 6. Main render with proper className composition
+  return (
+    <div 
+      className={clsx(
+        'base-styles-always-first',
+        variant === 'primary' && 'variant-styles',
+        size === 'lg' && 'size-styles',
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </div>
+  )
+}
+
+// 7. Always export with displayName for debugging
+Component.displayName = 'Component'
+```
+
+### Type Safety Excellence
+
+#### Zero Tolerance for `any`
+```typescript
+// 🚫 BANNED: Using 'any' type
+const data: any = response // NEVER DO THIS
+
+// ✅ REQUIRED: Proper type definitions
+interface ApiResponse<T> {
+  data: T
+  error: string | null
+  status: 'success' | 'error' | 'loading'
+}
+
+// ✅ REQUIRED: Generic constraints
+interface Repository<T extends { id: string }> {
+  findById(id: string): Promise<T>
+  create(item: Omit<T, 'id'>): Promise<T>
+}
+```
+
+#### Error Type Safety
+```typescript
+// ✅ REQUIRED: Typed error handling
+type AppError = 
+  | { type: 'VALIDATION_ERROR'; field: string; message: string }
+  | { type: 'NETWORK_ERROR'; status: number; message: string }
+  | { type: 'AUTH_ERROR'; message: string }
+
+const handleError = (error: AppError) => {
+  switch (error.type) {
+    case 'VALIDATION_ERROR':
+      setFieldError(error.field, error.message)
+      break
+    case 'NETWORK_ERROR':
+      showToast(`Network error (${error.status}): ${error.message}`)
+      break
+    case 'AUTH_ERROR':
+      redirectToLogin()
+      break
+  }
+}
+```
+
+### File Organization Standards
+
+#### Mandatory Barrel Exports
+```typescript
+// src/components/index.ts - REQUIRED in every directory
+export { Button } from './Button'
+export { Input } from './Input'
+export { Select } from './Select'
+export type { ButtonProps, InputProps, SelectProps } from './types'
+
+// src/components/forms/index.ts
+export { FormField } from './FormField'
+export { FormProvider } from './FormProvider'
+export { useForm } from './useForm'
+
+// Usage becomes clean:
+import { Button, Input, FormField } from '@/components'
+import { FormProvider, useForm } from '@/components/forms'
+```
+
+#### Directory Structure Rules
+```
+src/
+├── components/
+│   ├── ui/              # Basic design system components
+│   │   ├── Button/
+│   │   ├── Input/
+│   │   ├── Select/
+│   │   └── index.ts     # MANDATORY barrel export
+│   ├── forms/           # Form-specific components
+│   │   ├── ProjectForm/
+│   │   ├── AuthForm/
+│   │   └── index.ts
+│   ├── dashboard/       # Dashboard-specific components
+│   ├── layout/          # Layout components
+│   └── index.ts         # Master barrel export
+├── hooks/               # Custom hooks only
+├── lib/
+│   ├── api/            # API layer
+│   ├── utils/          # Pure utilities
+│   ├── types/          # Global type definitions
+│   └── constants/      # App constants
+└── app/                # Next.js pages only
+```
+
+### Performance Excellence
+
+#### Mandatory React.memo Usage
+```typescript
+// ✅ REQUIRED: Memo for components that receive props
+export const ExpensiveComponent = React.memo(function ExpensiveComponent({
+  data,
+  onUpdate
+}: Props) {
+  // Component implementation
+}, (prevProps, nextProps) => {
+  // Custom comparison if needed
+  return prevProps.data.id === nextProps.data.id
+})
+
+// ✅ REQUIRED: Memo for list items
+export const ListItem = React.memo(function ListItem({ item }: { item: Item }) {
+  return <div>{item.name}</div>
+})
+```
+
+#### Bundle Size Monitoring
+```typescript
+// ✅ REQUIRED: Lazy loading for large components
+const HeavyDashboard = lazy(() => import('@/components/dashboard/HeavyDashboard'))
+const ComplexForm = lazy(() => import('@/components/forms/ComplexForm'))
+
+// ✅ REQUIRED: Dynamic imports for conditional features
+const handleExport = async () => {
+  const { exportToCsv } = await import('@/lib/export')
+  exportToCsv(data)
+}
+```
+
+### Error Handling Excellence
+
+#### Mandatory Error Boundaries
+```typescript
+// ✅ REQUIRED: Error boundary for each major section
+export function DashboardErrorBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary
+      fallback={<DashboardErrorFallback />}
+      onError={(error, errorInfo) => {
+        console.error('Dashboard error:', error)
+        // Send to monitoring service
+      }}
+    >
+      {children}
+    </ErrorBoundary>
+  )
+}
+
+// ✅ REQUIRED: Graceful error UI
+function DashboardErrorFallback() {
+  return (
+    <Card className="p-8 text-center">
+      <AlertTriangleIcon className="w-12 h-12 mx-auto mb-4 text-red-500" />
+      <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+      <p className="text-slate-600 mb-4">
+        We're sorry, but the dashboard encountered an error.
+      </p>
+      <Button onClick={() => window.location.reload()}>
+        Reload Page
+      </Button>
+    </Card>
+  )
+}
+```
+
+#### Comprehensive Error States
+```typescript
+// ✅ REQUIRED: Every async operation must handle all states
+type AsyncState<T> = 
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: T }
+  | { status: 'error'; error: AppError }
+
+const useAsyncOperation = <T,>(
+  operation: () => Promise<T>
+): [AsyncState<T>, () => Promise<void>] => {
+  const [state, setState] = useState<AsyncState<T>>({ status: 'idle' })
+  
+  const execute = useCallback(async () => {
+    setState({ status: 'loading' })
+    try {
+      const data = await operation()
+      setState({ status: 'success', data })
+    } catch (error) {
+      setState({ status: 'error', error: error as AppError })
+    }
+  }, [operation])
+  
+  return [state, execute]
+}
+```
+
+### Icon System Excellence
+
+#### Unified Icon Component
+```typescript
+// ✅ REQUIRED: Single icon system using Lucide React
+import { 
+  ChevronDown, 
+  AlertTriangle, 
+  CheckCircle,
+  X,
+  Menu,
+  Upload,
+  Download
+} from 'lucide-react'
+
+interface IconProps {
+  name: 'chevron-down' | 'alert-triangle' | 'check-circle' | 'x' | 'menu' | 'upload' | 'download'
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
+}
+
+const iconMap = {
+  'chevron-down': ChevronDown,
+  'alert-triangle': AlertTriangle,
+  'check-circle': CheckCircle,
+  'x': X,
+  'menu': Menu,
+  'upload': Upload,
+  'download': Download,
+} as const
+
+export function Icon({ name, size = 'md', className }: IconProps) {
+  const IconComponent = iconMap[name]
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5', 
+    lg: 'w-6 h-6'
+  }
+  
+  return (
+    <IconComponent 
+      className={clsx(sizeClasses[size], className)} 
+    />
+  )
+}
+
+// Usage:
+<Icon name="chevron-down" size="sm" className="text-slate-500" />
+```
+
+### Code Quality Gates
+
+#### Pre-Commit Requirements
+```bash
+# .husky/pre-commit - MANDATORY
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 1. Type checking
+npm run type-check || exit 1
+
+# 2. Linting
+npm run lint || exit 1
+
+# 3. Build check
+npm run build || exit 1
+
+# 4. Bundle size check
+npm run bundle-analyzer || exit 1
+```
+
+#### Component Quality Checklist
+**Before creating ANY component, verify:**
+- [ ] Component name is descriptive and follows PascalCase
+- [ ] Props interface is properly typed with JSDoc comments
+- [ ] Component is under 200 lines (break down if larger)
+- [ ] Uses proper forwarding of refs if needed
+- [ ] Handles loading, error, and empty states
+- [ ] Uses React.memo if receiving props
+- [ ] Follows consistent className composition pattern
+- [ ] Has proper accessibility attributes
+- [ ] Is responsive across all breakpoints
+- [ ] Exported with barrel export in index.ts
+
+### Naming Conventions
+
+#### File Naming Rules
+```typescript
+// ✅ Components: PascalCase
+Button.tsx
+ProjectForm.tsx
+DashboardLayout.tsx
+
+// ✅ Hooks: camelCase starting with 'use'
+useAuth.ts
+useProjectData.ts
+useFormValidation.ts
+
+// ✅ Utilities: camelCase
+formatDate.ts
+validateEmail.ts
+apiClient.ts
+
+// ✅ Types: PascalCase with descriptive suffix
+types.ts (contains UserType, ProjectType, etc.)
+api.types.ts
+form.types.ts
+
+// ✅ Constants: SCREAMING_SNAKE_CASE
+API_ENDPOINTS.ts
+VALIDATION_RULES.ts
+```
+
+#### Variable Naming Rules
+```typescript
+// ✅ REQUIRED: Descriptive, searchable names
+const activeProjectsCount = projects.filter(p => p.status === 'active').length
+const isFormSubmitting = loading && formState.isSubmitted
+const handleProjectUpdate = (projectId: string, updates: ProjectUpdates) => {}
+
+// 🚫 BANNED: Abbreviations and unclear names
+const c = projects.filter(p => p.status === 'active').length // BAD
+const loading = true // TOO GENERIC
+const handle = () => {} // UNCLEAR
+```
+
+This CLAUDE.md ensures ByteTide maintains professional, production-ready code standards across all development activities with zero tolerance for technical debt.

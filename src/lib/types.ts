@@ -8,6 +8,19 @@ export interface Status {
   description: string
 }
 
+export interface Platform {
+  id: string
+  created_at: string
+  name: string
+  description: string | null
+  files: string[] | null  // For CSV upload migration type
+  api: Record<string, string> | null  // For API key migration type  
+  plugin: string | null  // For plugin/extension migration type
+  video_guide: string | null
+  items: ItemType[] | null
+}
+
+// Legacy interface for backward compatibility
 export interface PlatformRequirements {
   platform: string
   name: string | null
@@ -59,6 +72,7 @@ export interface ProjectFile {
   upload_date: string | null
   file_size: number
   is_initial: boolean | null
+  description?: string | null
 }
 
 export interface CreateProjectData {
@@ -77,4 +91,12 @@ export interface UploadedFile {
   type: string
   file: File
   selectedType?: string // Maps to platform requirement file types
+  description?: string  // User-provided description for additional files
+  customName?: string   // User-provided descriptive name for additional files
+}
+
+export interface AdditionalFile {
+  name: string        // User-provided descriptive name
+  description: string // User-provided description
+  file: File         // The actual file
 }

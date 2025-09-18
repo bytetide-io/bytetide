@@ -8,6 +8,7 @@ import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Alert } from '@/components/Alert'
 import { supabase } from '@/lib/supabase/client'
+import { useOrganization } from '@/lib/contexts/OrganizationContext'
 import { Project, Status, User } from '@/lib/types'
 // Safe date formatting function
 const formatProjectDate = (dateString: string | null) => {
@@ -36,7 +37,7 @@ const getCreatorName = (creator: any) => {
 
 interface ProjectWithStatus extends Project {
   status_info?: Status
-  platform_info?: { name: string; platform: string }
+  platform_info?: { id: string; name: string }
   creator?: User
 }
 
@@ -50,6 +51,7 @@ const STATUS_COLORS = {
 }
 
 export default function ProjectsPage() {
+  const { currentOrganization } = useOrganization()
   const [projects, setProjects] = useState<ProjectWithStatus[]>([])
   const [filteredProjects, setFilteredProjects] = useState<ProjectWithStatus[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,8 +61,10 @@ export default function ProjectsPage() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    fetchProjects()
-  }, [])
+    if (currentOrganization) {
+      fetchProjects()
+    }
+  }, [currentOrganization]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Check for filter parameter from URL
@@ -84,14 +88,11 @@ export default function ProjectsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
-      // Get user's organization
-      const { data: membership } = await supabase
-        .from('memberships')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (!membership) throw new Error('User is not part of an organization')
+      // Use organization context instead of direct membership query
+      if (!currentOrganization) {
+        setError('No organization available')
+        return
+      }
 
       // Fetch projects with status, platform, and creator info
       const { data, error } = await supabase
@@ -99,10 +100,10 @@ export default function ProjectsPage() {
         .select(`
           *,
           status_info:status(status, name, description),
-          platform_info:platform_requirements(name, platform),
+          platform_info:platforms!source_platform(id, name),
           creator:users!created_by(id, email, full_name)
         `)
-        .eq('org_id', membership.org_id)
+        .eq('org_id', currentOrganization.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error

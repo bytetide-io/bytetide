@@ -6,9 +6,9 @@ import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Card } from '@/components/Card'
 import { Alert } from '@/components/Alert'
-import { FileUpload } from '@/components/FileUpload'
+import { AdditionalFileUpload } from '@/components/AdditionalFileUpload'
 import { supabase } from '@/lib/supabase/client'
-import { Project, ItemType, UploadedFile, ProjectFile } from '@/lib/types'
+import { Project, ItemType, ProjectFile, Platform, AdditionalFile } from '@/lib/types'
 import { validateDomain, validateShopifyUrl, validateShopifyAccessToken, normalizeShopifyUrl, normalizeDomain } from '@/lib/validation'
 import clsx from 'clsx'
 
@@ -28,37 +28,40 @@ interface EditProjectFormProps {
 }
 
 export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Record<string, any>>({
     domain: project.domain || '',
     shopify_url: project.shopify_url || '',
     shopify_access_token: project.access_token || '',
     special_demands: project.special_demands || '',
     items: project.items || [],
-    // API credentials for API-based platforms
-    api_consumer_key: project.source_api?.consumer_key || '',
-    api_consumer_password: project.source_api?.consumer_password || '',
-    api_source_store_url: project.source_api?.source_store_url || ''
+    ...Object.keys(project.source_api || {}).reduce((acc, key) => {
+      acc[`api_${key}`] = project.source_api?.[key] || ''
+      return acc
+    }, {} as Record<string, string>)
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [newFiles, setNewFiles] = useState<AdditionalFile[]>([])
   const [existingFiles, setExistingFiles] = useState<ProjectFile[]>([])
-  const [platformRequirements, setPlatformRequirements] = useState<any>(null)
+  const [platform, setPlatform] = useState<Platform | null>(null)
 
   const router = useRouter()
 
-  // Determine if this is an API-based or file-based project
-  const isApiProject = project.source_platform?.includes('(API)')
-  const isFileProject = !isApiProject
+  // Determine migration type based on platform structure
+  const isCSVMigration = platform && platform.files && platform.files.length > 0
+  const isAPIMigration = platform && platform.api && !platform.plugin
+  const isPluginMigration = platform && platform.plugin && platform.api
+  const isCustomMigration = platform && !platform.files && !platform.api && !platform.plugin
+  
+  const requiresFiles = isCSVMigration || isCustomMigration
+  const requiresAPI = isAPIMigration || isPluginMigration
 
   useEffect(() => {
     fetchExistingFiles()
-    fetchPlatformRequirements()
+    fetchPlatform()
   }, [project.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchExistingFiles = async () => {
-    if (!isFileProject) return
-
     try {
       const { data, error } = await supabase
         .from('project_files')
@@ -73,18 +76,18 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
     }
   }
 
-  const fetchPlatformRequirements = async () => {
+  const fetchPlatform = async () => {
     try {
       const { data, error } = await supabase
-        .from('platform_requirements')
+        .from('platforms')
         .select('*')
-        .eq('platform', project.source_platform)
+        .eq('id', project.source_platform)
         .single()
 
       if (error) throw error
-      setPlatformRequirements(data)
+      setPlatform(data)
     } catch (error) {
-      console.error('Error fetching platform requirements:', error)
+      console.error('Error fetching platform:', error)
     }
   }
 
@@ -114,21 +117,12 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
     }
 
     // API-specific validation for API-based projects
-    if (isApiProject) {
-      if (!formData.api_consumer_key) {
-        newErrors.api_consumer_key = 'API Consumer Key is required'
-      }
-      if (!formData.api_consumer_password) {
-        newErrors.api_consumer_password = 'API Consumer Password is required'
-      }
-      if (!formData.api_source_store_url) {
-        newErrors.api_source_store_url = 'Source Store URL is required'
-      }
-    }
-
-    // File-specific validation for file-based projects
-    if (isFileProject && uploadedFiles.length === 0 && existingFiles.length === 0) {
-      newErrors.files = 'Please upload at least one file for your migration'
+    if (requiresAPI && platform?.api) {
+      Object.keys(platform.api).forEach(key => {
+        if (!formData[`api_${key}`]) {
+          newErrors[`api_${key}`] = `${key} is required`
+        }
+      })
     }
 
     setErrors(newErrors)
@@ -152,51 +146,59 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
   const handleItemToggle = (itemValue: string) => {
     const currentItems = formData.items || []
     const newItems = currentItems.includes(itemValue as ItemType)
-      ? currentItems.filter(item => item !== itemValue)
+      ? currentItems.filter((item: ItemType) => item !== itemValue)
       : [...currentItems, itemValue as ItemType]
 
     setFormData(prev => ({ ...prev, items: newItems }))
   }
 
-  const handleFilesChange = (files: UploadedFile[]) => {
-    setUploadedFiles(files)
+  const handleFileAdd = (file: AdditionalFile) => {
+    setNewFiles(prev => [...prev, file])
     if (errors.files) {
       setErrors(prev => ({ ...prev, files: '' }))
     }
   }
 
-  const uploadFiles = async (): Promise<boolean> => {
-    if (uploadedFiles.length === 0) return true
+  const uploadNewFiles = async (): Promise<void> => {
+    if (newFiles.length === 0) return
 
-    try {
-      for (const uploadedFile of uploadedFiles) {
-        // Upload file to Supabase Storage  
-        const fileName = `projects/${project.id}/${Date.now()}-${uploadedFile.name}`
-        const { error: uploadError } = await supabase.storage
-          .from('projects')
-          .upload(fileName, uploadedFile.file)
+    for (const newFile of newFiles) {
+      // Upload file to Supabase Storage  
+      const fileName = `projects/${project.id}/${Date.now()}-${newFile.file.name}`
+      const { error: uploadError } = await supabase.storage
+        .from('project-files')
+        .upload(fileName, newFile.file)
 
-        if (uploadError) throw uploadError
-
-        // Save file record to database
-        const { error: dbError } = await supabase
-          .from('project_files')
-          .insert({
-            project_id: project.id,
-            file_name: uploadedFile.name,
-            file_type: uploadedFile.selectedType || 'unknown',
-            file_path: fileName,
-            file_size: uploadedFile.size,
-            is_initial: false // This is an update, not initial upload
-          })
-
-        if (dbError) throw dbError
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError)
+        throw new Error(`Failed to upload ${newFile.name}: ${uploadError.message}`)
       }
 
-      return true
-    } catch (error) {
-      console.error('Error uploading files:', error)
-      return false
+      // Save file record to database
+      const { error: dbError } = await supabase
+        .from('project_files')
+        .insert({
+          project_id: project.id,
+          file_name: newFile.name,
+          file_type: 'additional-file',
+          file_path: fileName,
+          file_size: newFile.file.size,
+          is_initial: false,
+          description: newFile.description
+        })
+
+      if (dbError) {
+        console.error('Database insert error:', dbError)
+        // Try to cleanup the uploaded file
+        try {
+          await supabase.storage
+            .from('project-files')
+            .remove([fileName])
+        } catch (cleanupError) {
+          console.error('Failed to cleanup uploaded file:', cleanupError)
+        }
+        throw new Error(`Failed to save file record for ${newFile.name}: ${dbError.message}`)
+      }
     }
   }
 
@@ -207,7 +209,7 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
 
       // Delete from storage
       const { error: storageError } = await supabase.storage
-        .from('projects')
+        .from('project-files')
         .remove([fileToDelete.file_path])
 
       if (storageError) throw storageError
@@ -236,12 +238,9 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
     setErrors({})
 
     try {
-      // Handle file uploads for file-based projects
-      if (isFileProject && uploadedFiles.length > 0) {
-        const uploadSuccess = await uploadFiles()
-        if (!uploadSuccess) {
-          throw new Error('Failed to upload files')
-        }
+      // Handle new file uploads
+      if (newFiles.length > 0) {
+        await uploadNewFiles()
       }
 
       // Prepare update data
@@ -255,12 +254,13 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
       }
 
       // Add API-specific data for API-based projects
-      if (isApiProject) {
-        updateData.source_api = {
-          consumer_key: formData.api_consumer_key,
-          consumer_password: formData.api_consumer_password,
-          source_store_url: formData.api_source_store_url
-        }
+      if (requiresAPI && platform?.api) {
+        const apiData: Record<string, string> = {}
+        Object.keys(platform.api).forEach(key => {
+          const value = formData[`api_${key}`]
+          if (value) apiData[key] = value
+        })
+        updateData.source_api = apiData
       }
 
       const { error } = await supabase
@@ -286,7 +286,7 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
           Edit Project
         </h2>
         <p className="text-slate-600">
-          Update your project details and migration settings.
+          Update your project settings.
         </p>
       </div>
 
@@ -329,111 +329,121 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
         />
 
         {/* API Credentials Section for API-based projects */}
-        {isApiProject && (
+        {requiresAPI && platform?.api && (
           <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <div className="flex items-center space-x-2">
               <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
               </svg>
-              <h3 className="text-lg font-medium text-blue-900">API Connection Settings</h3>
+              <h3 className="text-lg font-medium text-blue-900">API Settings</h3>
             </div>
-            <p className="text-sm text-blue-700">Update your API credentials to refresh data access.</p>
+            <p className="text-sm text-blue-700">Update your API credentials.</p>
 
-            <Input
-              label="Consumer Key"
-              placeholder="ck_..."
-              value={formData.api_consumer_key}
-              onChange={(e) => setFormData(prev => ({ ...prev, api_consumer_key: e.target.value }))}
-              error={errors.api_consumer_key}
-              helpText="Your API consumer key"
-              required
-            />
-
-            <Input
-              label="Consumer Password"
-              type="password"
-              placeholder="cs_..."
-              value={formData.api_consumer_password}
-              onChange={(e) => setFormData(prev => ({ ...prev, api_consumer_password: e.target.value }))}
-              error={errors.api_consumer_password}
-              helpText="Your API consumer password/secret"
-              required
-            />
-
-            <Input
-              label="Source Store URL"
-              placeholder="https://mystore.com"
-              value={formData.api_source_store_url}
-              onChange={(e) => setFormData(prev => ({ ...prev, api_source_store_url: e.target.value }))}
-              error={errors.api_source_store_url}
-              helpText="The URL of your source store"
-              required
-            />
-          </div>
-        )}
-
-        {/* File Upload Section for file-based projects */}
-        {isFileProject && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium text-slate-900">Project Files</h3>
-                <p className="text-sm text-slate-600">Upload additional files or replace existing ones</p>
-              </div>
-            </div>
-
-            {/* Existing Files */}
-            {existingFiles.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-slate-700">Current Files</h4>
-                <div className="space-y-2">
-                  {existingFiles.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{file.file_name}</p>
-                          <p className="text-xs text-slate-500">
-                            {file.file_type} • {(file.file_size / (1024 * 1024)).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => deleteFile(file.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* New File Upload */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-slate-700">Add New Files</h4>
-              <FileUpload
-                label="Upload Files"
-                accept=".csv,.json,.jsonl,.xml,.txt"
-                multiple
-                maxSize={100}
-                requiredFiles={platformRequirements?.required_files || []}
-                optionalFiles={platformRequirements?.optional_files || []}
-                onFilesChange={handleFilesChange}
-                error={errors.files}
-                helpText="Select files to add to your project"
+            {Object.entries(platform.api).map(([key, instructions]) => (
+              <Input
+                key={key}
+                label={key}
+                type={key.toLowerCase().includes('token') || key.toLowerCase().includes('key') || key.toLowerCase().includes('secret') ? 'password' : 'text'}
+                value={formData[`api_${key}`] || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, [`api_${key}`]: e.target.value }))}
+                error={errors[`api_${key}`]}
+                helpText={instructions}
+                required
               />
-            </div>
+            ))}
           </div>
         )}
+
+        {/* File Management Section */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-medium text-slate-900">Project Files</h3>
+            <p className="text-sm text-slate-600">Manage your project files</p>
+          </div>
+
+          {/* Existing Files */}
+          {existingFiles.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-slate-700">Current Files</h4>
+              <div className="space-y-2">
+                {existingFiles.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{file.file_name}</p>
+                        {file.description && (
+                          <p className="text-xs text-slate-600">{file.description}</p>
+                        )}
+                        <p className="text-xs text-slate-500">
+                          {file.file_type} • {(file.file_size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteFile(file.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* New Files to Upload */}
+          {newFiles.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-slate-700">New Files to Upload</h4>
+              <div className="space-y-2">
+                {newFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{file.name}</p>
+                        <p className="text-xs text-slate-600">{file.description}</p>
+                        <p className="text-xs text-slate-500">
+                          {file.file.name} • {(file.file.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setNewFiles(prev => prev.filter((_, i) => i !== index))}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add New File */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-slate-700">Add New File</h4>
+            <AdditionalFileUpload
+              onFileAdd={handleFileAdd}
+              disabled={loading}
+            />
+          </div>
+        </div>
 
         <div className="space-y-3">
           <label className="block text-sm font-medium text-slate-700">
@@ -495,8 +505,8 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
           </label>
           <textarea
             className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition-all duration-200 focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
-            rows={4}
-            placeholder="Any special requirements or notes about your migration..."
+            rows={3}
+            placeholder="Any special requirements..."
             value={formData.special_demands}
             onChange={(e) => setFormData(prev => ({ ...prev, special_demands: e.target.value }))}
           />

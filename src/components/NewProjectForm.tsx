@@ -9,7 +9,9 @@ import { FileUpload } from '@/components/FileUpload'
 import { Card } from '@/components/Card'
 import { Alert } from '@/components/Alert'
 import { supabase } from '@/lib/supabase/client'
-import { PlatformRequirements, CreateProjectData, UploadedFile, ItemType } from '@/lib/types'
+import { Platform, CreateProjectData, UploadedFile, AdditionalFile, ItemType } from '@/lib/types'
+import { AdditionalFileUpload } from '@/components/AdditionalFileUpload'
+import { useOrganization } from '@/lib/contexts/OrganizationContext'
 import { validateDomain, validateShopifyUrl, validateShopifyAccessToken, normalizeShopifyUrl, normalizeDomain } from '@/lib/validation'
 import clsx from 'clsx'
 
@@ -28,7 +30,8 @@ interface NewProjectFormProps {
 }
 
 export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
-  const [platforms, setPlatforms] = useState<PlatformRequirements[]>([])
+  const { currentOrganization, loading: orgLoading } = useOrganization()
+  const [platforms, setPlatforms] = useState<Platform[]>([])
   const [selectedPlatform, setSelectedPlatform] = useState('')
   const [formData, setFormData] = useState<CreateProjectData>({
     domain: '',
@@ -39,7 +42,8 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
     items: [],
     api_data: {}
   })
-  const [files, setFiles] = useState<UploadedFile[]>([])
+  const [files, setFiles] = useState<UploadedFile[]>([])  // Platform-specific required files
+  const [additionalFiles, setAdditionalFiles] = useState<AdditionalFile[]>([])  // Additional custom files
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [platformsLoading, setPlatformsLoading] = useState(true)
@@ -54,7 +58,7 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
   const fetchPlatforms = async () => {
     try {
       const { data, error } = await supabase
-        .from('platform_requirements')
+        .from('platforms')
         .select('*')
         .order('name')
 
@@ -68,12 +72,17 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
     }
   }
 
-  const platform = platforms.find(p => p.platform === selectedPlatform)
-  // Check if it's a custom project (allowed_files is null and no api_requirements)
-  const isCustomProject = platform && (platform.allowed_files === null && !platform.api_requirements)
-  const requiresFiles = platform && ((platform.allowed_files?.length ?? 0) > 0 || platform.required_files.length > 0 || platform.optional_files.length > 0 || isCustomProject)
-  const requiresAPI = platform && platform.api_requirements
-  const requiresPlugin = platform && platform.plugin
+  const platform = platforms.find(p => p.id === selectedPlatform)
+  
+  // Determine migration type based on platform structure
+  const isCSVMigration = platform && platform.files && platform.files.length > 0
+  const isAPIMigration = platform && platform.api && !platform.plugin
+  const isPluginMigration = platform && platform.plugin && platform.api
+  const isCustomMigration = platform && !platform.files && !platform.api && !platform.plugin
+  
+  const requiresFiles = isCSVMigration || isCustomMigration
+  const requiresAPI = isAPIMigration || isPluginMigration
+  const requiresPlugin = isPluginMigration
 
   const validateStep = (stepNumber: number): boolean => {
     const newErrors: Record<string, string> = {}
@@ -109,48 +118,50 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
     }
 
     if (stepNumber === 3) {
-      if (requiresFiles && !isCustomProject) {
+      // For CSV migration, check if required files are uploaded
+      if (isCSVMigration && platform?.files) {
         if (files.length === 0) {
           newErrors.files = 'Please upload the required files'
         } else {
-          // Use allowed_files if available, otherwise fall back to required_files
-          const allowedFiles = platform?.allowed_files || platform?.required_files || []
-          const requiredFiles = platform?.required_files || []
-          
-          if (allowedFiles.length > 0) {
-            // For platforms with allowed_files, check that all uploaded files are valid
-            const invalidFiles = files.filter(f => f.selectedType && !allowedFiles.includes(f.selectedType))
-            if (invalidFiles.length > 0) {
-              newErrors.files = `Invalid file types. Allowed: ${allowedFiles.join(', ')}`
-            }
-          }
-          
-          if (requiredFiles.length > 0) {
-            // Check if all required files are mapped
-            const mappedRequiredFiles = files
-              .filter(f => f.selectedType && requiredFiles.includes(f.selectedType))
-              .map(f => f.selectedType)
+          // Check if all required files are mapped
+          const requiredFiles = platform.files
+          const mappedFiles = files
+            .filter(f => f.selectedType && requiredFiles.includes(f.selectedType))
+            .map(f => f.selectedType)
 
-            const missingRequired = requiredFiles.filter(rf => !mappedRequiredFiles.includes(rf))
-            if (missingRequired.length > 0) {
-              newErrors.files = `Please map files for: ${missingRequired.join(', ')}`
-            }
+          const missingRequired = requiredFiles.filter(rf => !mappedFiles.includes(rf))
+          if (missingRequired.length > 0) {
+            newErrors.files = `Please upload files for: ${missingRequired.join(', ')}`
           }
 
-          // Check for unmapped files (only if not custom project)
+          // Check for unmapped files
           const unmappedFiles = files.filter(f => !f.selectedType)
-          if (unmappedFiles.length > 0 && (allowedFiles.length > 0 || requiredFiles.length > 0)) {
+          if (unmappedFiles.length > 0) {
             newErrors.files = 'Please select a file type for all uploaded files'
           }
         }
       }
 
-      if (requiresAPI && platform?.api_requirements) {
-        Object.keys(platform.api_requirements).forEach(key => {
+      // For API or Plugin migration, check if API credentials are provided
+      if (requiresAPI && platform?.api) {
+        Object.keys(platform.api).forEach(key => {
           if (!formData.api_data?.[key]) {
-            newErrors[`api_${key}`] = `${platform.api_requirements![key]} is required`
+            newErrors[`api_${key}`] = `${key} is required`
           }
         })
+      }
+
+      // For custom migration, require at least one file with name and description
+      if (isCustomMigration) {
+        if (files.length === 0) {
+          newErrors.files = 'Please upload at least one file for custom migration'
+        } else {
+          // Check that all files have custom names and descriptions
+          const missingMetadata = files.filter(f => !f.customName || !f.description)
+          if (missingMetadata.length > 0) {
+            newErrors.files = 'All files must have descriptive names and descriptions'
+          }
+        }
       }
     }
 
@@ -213,33 +224,98 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
   }
 
   const uploadFiles = async (projectId: string) => {
-    if (files.length === 0) return
+    const uploadedFilePaths: string[] = []
 
-    const uploadPromises = files.map(async (uploadedFile) => {
-      const filePath = `projects/${projectId}/${uploadedFile.name}`
+    try {
+      // Upload platform-specific required files
+      if (files.length > 0) {
+        for (const uploadedFile of files) {
+          const filePath = `projects/${projectId}/${uploadedFile.name}`
 
-      // Upload to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from('project-files')
-        .upload(filePath, uploadedFile.file)
+          // Upload to Supabase storage
+          const { error: uploadError } = await supabase.storage
+            .from('project-files')
+            .upload(filePath, uploadedFile.file)
 
-      if (uploadError) throw uploadError
+          if (uploadError) {
+            console.error('Storage upload error:', uploadError)
+            throw new Error(`Failed to upload ${uploadedFile.name}: ${uploadError.message}`)
+          }
 
-      // Insert file record
-      const { error: insertError } = await supabase
-        .from('project_files')
-        .insert({
-          project_id: projectId,
-          file_name: uploadedFile.name,
-          file_type: uploadedFile.selectedType || (isCustomProject ? 'custom-file' : uploadedFile.type),
-          file_path: filePath,
-          file_size: uploadedFile.size
-        })
+          uploadedFilePaths.push(filePath)
 
-      if (insertError) throw insertError
-    })
+          // Insert file record
+          const { error: insertError } = await supabase
+            .from('project_files')
+            .insert({
+              project_id: projectId,
+              file_name: uploadedFile.customName || uploadedFile.name,
+              file_type: uploadedFile.selectedType || uploadedFile.type,
+              file_path: filePath,
+              file_size: uploadedFile.size,
+              is_initial: true,
+              description: uploadedFile.description || null
+            })
 
-    await Promise.all(uploadPromises)
+          if (insertError) {
+            console.error('Database insert error:', insertError)
+            throw new Error(`Failed to save file record for ${uploadedFile.name}: ${insertError.message}`)
+          }
+        }
+      }
+
+      // Upload additional custom files
+      if (additionalFiles.length > 0) {
+        for (const additionalFile of additionalFiles) {
+          const filePath = `projects/${projectId}/${additionalFile.file.name}`
+
+          // Upload to Supabase storage
+          const { error: uploadError } = await supabase.storage
+            .from('project-files')
+            .upload(filePath, additionalFile.file)
+
+          if (uploadError) {
+            console.error('Storage upload error:', uploadError)
+            throw new Error(`Failed to upload ${additionalFile.name}: ${uploadError.message}`)
+          }
+
+          uploadedFilePaths.push(filePath)
+
+          // Insert file record with custom name and description
+          const { error: insertError } = await supabase
+            .from('project_files')
+            .insert({
+              project_id: projectId,
+              file_name: additionalFile.name,
+              file_type: 'additional-file',
+              file_path: filePath,
+              file_size: additionalFile.file.size,
+              is_initial: false,
+              description: additionalFile.description
+            })
+
+          if (insertError) {
+            console.error('Database insert error:', insertError)
+            throw new Error(`Failed to save file record for ${additionalFile.name}: ${insertError.message}`)
+          }
+        }
+      }
+    } catch (error) {
+      // Cleanup any uploaded files if something went wrong
+      if (uploadedFilePaths.length > 0) {
+        console.log('Cleaning up uploaded files after error:', uploadedFilePaths)
+        try {
+          await supabase.storage
+            .from('project-files')
+            .remove(uploadedFilePaths)
+        } catch (cleanupError) {
+          console.error('Failed to cleanup uploaded files:', cleanupError)
+        }
+      }
+      
+      // Re-throw the original error
+      throw error
+    }
   }
 
   const handleSubmit = async () => {
@@ -248,23 +324,19 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
     setLoading(true)
     setErrors({})
 
+    let createdProject: any = null
+
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
-      // Get user's organization
-      const { data: membership } = await supabase
-        .from('memberships')
-        .select('org_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (!membership) throw new Error('User is not part of an organization')
+      // Use organization from context (already validated above)
+      if (!currentOrganization) throw new Error('No organization selected')
 
       // Create project
       const projectData = {
-        org_id: membership.org_id,
+        org_id: currentOrganization.id,
         domain: formData.domain,
         source_platform: formData.source_platform,
         special_demands: formData.special_demands || null,
@@ -282,10 +354,28 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
         .single()
 
       if (projectError) throw projectError
+      createdProject = project
 
-      // Upload files if any
-      if (files.length > 0) {
-        await uploadFiles(project.id)
+      // Upload files if any - if this fails, we need to cleanup the project
+      if (files.length > 0 || additionalFiles.length > 0) {
+        try {
+          await uploadFiles(project.id)
+        } catch (uploadError) {
+          // File upload failed - cleanup the created project
+          console.error('File upload failed, cleaning up project:', uploadError)
+          
+          try {
+            await supabase
+              .from('projects')
+              .delete()
+              .eq('id', project.id)
+          } catch (deleteError) {
+            console.error('Failed to cleanup project after upload failure:', deleteError)
+          }
+          
+          // Re-throw the original upload error
+          throw new Error('Failed to upload files. Please try again.')
+        }
       }
 
       onSuccess?.(project.id)
@@ -298,7 +388,8 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
     }
   }
 
-  if (platformsLoading) {
+  // Show loading while organization context or platforms are loading
+  if (orgLoading || platformsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -306,9 +397,38 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
     )
   }
 
+  // Show error if no organization is available
+  if (!currentOrganization) {
+    return (
+      <Card className="p-8 text-center">
+        <div className="mb-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full mx-auto flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+        </div>
+        <h2 className="text-xl font-semibold text-slate-900 mb-2">
+          Organization Required
+        </h2>
+        <p className="text-slate-600 mb-6">
+          You need to be part of an organization to create projects.
+        </p>
+        <div className="flex space-x-3 justify-center">
+          <Button onClick={() => router.push('/onboarding/create-organization')}>
+            Create Organization
+          </Button>
+          <Button variant="secondary" onClick={() => router.push('/dashboard')}>
+            Back to Dashboard
+          </Button>
+        </div>
+      </Card>
+    )
+  }
+
   const platformOptions = platforms.map(p => ({
-    value: p.platform,
-    label: p.name || p.platform,
+    value: p.id,
+    label: p.name,
     description: p.description || undefined
   }))
 
@@ -476,88 +596,180 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                {requiresPlugin ? 'Plugin Installation' : requiresAPI ? 'API Configuration' : isCustomProject ? 'Custom File Upload' : 'File Upload'}
+                {isPluginMigration ? 'Plugin Installation & API Setup' 
+                 : isAPIMigration ? 'API Configuration' 
+                 : isCSVMigration ? 'File Upload' 
+                 : 'Custom File Upload'}
               </h2>
               <p className="text-slate-600">
-                {requiresPlugin
-                  ? 'Install our plugin and configure API credentials'
-                  : requiresAPI
-                    ? 'Configure your API credentials for automated data extraction'
-                    : isCustomProject
-                      ? 'Upload your data files - our team will work with you to understand your data structure'
-                      : 'Upload the required files for data migration'
+                {isPluginMigration
+                  ? 'Install plugin and provide API credentials'
+                  : isAPIMigration
+                    ? 'Provide your API credentials'
+                    : isCSVMigration
+                      ? 'Upload your data files'
+                      : 'Upload your data files with descriptions'
                 }
               </p>
             </div>
 
-            {requiresPlugin && (
-              <Alert variant="info">
-                <div className="space-y-2">
-                  <p className="font-medium">Plugin Installation Required</p>
-                  <p className="text-sm">
-                    Please install our plugin on your source store first, then provide the API credentials below.
-                  </p>
-                  {platform?.plugin && (
+            {/* Plugin Installation Section */}
+            {isPluginMigration && platform?.plugin && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-slate-900 mb-3">Step 1: Install Plugin</h3>
+                <div className="flex space-x-4">
+                  <a
+                    href={platform.plugin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    Download Plugin
+                    <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                  {platform.video_guide && (
                     <a
-                      href={platform.plugin}
+                      href={platform.video_guide}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                     >
-                      Download Plugin
+                      Installation Guide
                       <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m2-7a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </a>
                   )}
                 </div>
-              </Alert>
+              </div>
             )}
 
-            {requiresAPI && platform?.api_requirements && (
+            {/* API Credentials Section */}
+            {requiresAPI && platform?.api && (
               <div className="space-y-4">
-                {Object.entries(platform.api_requirements).map(([key, description]) => (
+                <h3 className="text-lg font-medium text-slate-900">
+                  {isPluginMigration ? 'Step 2: API Credentials' : 'API Credentials'}
+                </h3>
+                {Object.entries(platform.api).map(([key, instructions]) => (
                   <Input
                     key={key}
-                    label={description}
-                    type={key.includes('token') || key.includes('key') ? 'password' : 'text'}
+                    label={key}
+                    type={key.toLowerCase().includes('token') || key.toLowerCase().includes('key') || key.toLowerCase().includes('secret') ? 'password' : 'text'}
                     value={formData.api_data?.[key] || ''}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
                       api_data: { ...prev.api_data, [key]: e.target.value }
                     }))}
                     error={errors[`api_${key}`]}
+                    helpText={instructions}
                     required
                   />
                 ))}
               </div>
             )}
 
-            {requiresFiles && (
+            {/* CSV File Upload Section */}
+            {isCSVMigration && platform?.files && (
               <div className="space-y-4">
-                <Alert variant="info">
-                  <div className="space-y-2">
-                    <p className="font-medium">File Upload Instructions</p>
-                    <p className="text-sm">
-                      After uploading each file, please select what type of data it contains from the dropdown menu.
-                      This helps our team understand your data structure.
-                    </p>
-                  </div>
-                </Alert>
+                <div>
+                  <h3 className="text-lg font-medium text-slate-900">Required Files</h3>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Upload: {platform.files.join(', ')}
+                  </p>
+                </div>
 
                 <FileUpload
-                  label="Upload Migration Files"
                   accept=".csv,.xlsx,.json"
                   maxSize={100}
-                  requiredFiles={platform?.required_files || []}
-                  optionalFiles={platform?.optional_files || []}
-                  allowedFiles={platform?.allowed_files}
-                  isCustomProject={isCustomProject}
+                  requiredFiles={platform.files}
                   onFilesChange={setFiles}
                   error={errors.files}
-                  helpText={isCustomProject ? "Upload any data files you want to migrate" : "Upload the required data files for migration"}
                 />
               </div>
+            )}
+
+            {/* Custom File Upload Section */}
+            {isCustomMigration && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium text-slate-900">Upload Data Files</h3>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Add files with descriptive names and descriptions
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {files.map((file, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium text-slate-900">{file.customName || file.name}</p>
+                        <p className="text-sm text-slate-600">{file.description}</p>
+                        <p className="text-xs text-slate-500">{file.name} ({(file.file.size / 1024 / 1024).toFixed(1)} MB)</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFiles(prev => prev.filter((_, i) => i !== index))}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  <AdditionalFileUpload
+                    onFileAdd={(file) => {
+                      // For custom projects, add to the main files array with metadata
+                      const newFile: UploadedFile = {
+                        name: file.file.name,
+                        size: file.file.size,
+                        type: file.file.type,
+                        file: file.file,
+                        customName: file.name,
+                        description: file.description,
+                        selectedType: 'custom-file'
+                      }
+                      setFiles(prev => [...prev, newFile])
+                    }}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Additional Files Section - Available for non-custom migration types */}
+            {!isCustomMigration && (
+              <div className="border-t border-slate-200 pt-6 space-y-4">
+                <h3 className="text-lg font-medium text-slate-900">Additional Files (Optional)</h3>
+                <p className="text-sm text-slate-600">
+                  Mailing lists, customer exports, or other business data
+                </p>
+              
+              <div className="space-y-3">
+                {additionalFiles.map((file, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-900">{file.name}</p>
+                      <p className="text-sm text-slate-600">{file.description}</p>
+                      <p className="text-xs text-slate-500">{file.file.name} ({(file.file.size / 1024 / 1024).toFixed(1)} MB)</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setAdditionalFiles(prev => prev.filter((_, i) => i !== index))}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                
+                <AdditionalFileUpload
+                  onFileAdd={(file) => setAdditionalFiles(prev => [...prev, file])}
+                  disabled={loading}
+                />
+              </div>
+            </div>
             )}
           </div>
         )}
@@ -602,9 +814,40 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
                 </div>
               </div>
 
+              {/* Migration Type Information */}
+              <div>
+                <h4 className="font-medium text-slate-900">Migration Type</h4>
+                <p className="text-slate-600">
+                  {isPluginMigration && 'Plugin-based migration with API integration'}
+                  {isAPIMigration && 'Direct API integration'}
+                  {isCSVMigration && 'File-based migration using CSV uploads'}
+                  {isCustomMigration && 'Custom migration - files will be analyzed'}
+                </p>
+              </div>
+
+              {/* API Credentials (if applicable) */}
+              {requiresAPI && platform?.api && Object.keys(formData.api_data || {}).length > 0 && (
+                <div>
+                  <h4 className="font-medium text-slate-900">API Configuration</h4>
+                  <div className="space-y-1">
+                    {Object.keys(platform.api).map(key => (
+                      <div key={key} className="flex items-center justify-between text-sm">
+                        <span className="text-slate-700">{key}</span>
+                        <span className="text-slate-500">
+                          {formData.api_data?.[key] ? '✓ Configured' : '⚠ Missing'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Platform-specific Files */}
               {files.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-slate-900">Uploaded Files</h4>
+                  <h4 className="font-medium text-slate-900">
+                    {isCSVMigration ? 'Required Files' : 'Uploaded Files'}
+                  </h4>
                   <div className="space-y-2 mt-2">
                     {files.map((file, index) => (
                       <div key={index} className="flex items-center justify-between text-sm">
@@ -620,6 +863,26 @@ export function NewProjectForm({ onSuccess, onCancel }: NewProjectFormProps) {
                             </span>
                           )}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Files */}
+              {additionalFiles.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-slate-900">Additional Files</h4>
+                  <div className="space-y-2 mt-2">
+                    {additionalFiles.map((file, index) => (
+                      <div key={index} className="text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-700 font-medium">{file.name}</span>
+                          <span className="text-xs text-slate-500">
+                            {(file.file.size / 1024 / 1024).toFixed(1)} MB
+                          </span>
+                        </div>
+                        <p className="text-slate-600 text-xs">{file.description}</p>
                       </div>
                     ))}
                   </div>
