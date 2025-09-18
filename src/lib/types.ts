@@ -81,6 +81,7 @@ export interface ProjectFile {
   is_initial: boolean | null
   description?: string | null
 }
+// Data required to create a new project
 
 export interface CreateProjectData {
   domain: string
