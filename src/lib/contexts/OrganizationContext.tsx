@@ -2,28 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
-
-interface Organization {
-  id: string
-  name: string
-  domain: string
-  country?: string
-  created_at: string
-}
-
-interface Membership {
-  id: string
-  role: string
-  organization: Organization
-}
-
-interface OrganizationContextType {
-  currentOrganization: Organization | null
-  organizations: Membership[]
-  loading: boolean
-  switchOrganization: (orgId: string) => void
-  refreshOrganizations: () => Promise<void>
-}
+import { 
+  Organization, 
+  Membership, 
+  OrganizationContextType, 
+  MembershipResponse 
+} from '@/lib/types'
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined)
 
@@ -76,11 +60,19 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
         return
       }
 
-      const formattedMemberships: Membership[] = (memberships || []).map(membership => ({
-        id: membership.id,
-        role: membership.role,
-        organization: membership.organizations as any as Organization
-      }))
+      const formattedMemberships: Membership[] = (memberships || [])
+        .filter((membership: any) => membership.organizations)
+        .map((membership: any) => ({
+          id: membership.id,
+          role: membership.role,
+          organization: {
+            id: membership.organizations.id,
+            name: membership.organizations.name,
+            domain: membership.organizations.domain,
+            country: membership.organizations.country,
+            created_at: membership.organizations.created_at
+          }
+        }))
 
       setOrganizations(formattedMemberships)
 

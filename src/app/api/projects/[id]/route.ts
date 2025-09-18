@@ -28,32 +28,32 @@ export async function DELETE(
       )
     }
 
-    // Get user's organization
-    const { data: membership, error: membershipError } = await supabase
-      .from('memberships')
-      .select('org_id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (membershipError || !membership) {
-      return NextResponse.json(
-        { error: 'User is not part of an organization' },
-        { status: 403 }
-      )
-    }
-
-    // Get the project and verify ownership and status
+    // Get the project first to identify which organization it belongs to
     const { data: project, error: projectError } = await supabase
       .from('projects')
       .select('id, status, org_id')
       .eq('id', projectId)
-      .eq('org_id', membership.org_id)
       .single()
 
     if (projectError || !project) {
       return NextResponse.json(
-        { error: 'Project not found or access denied' },
+        { error: 'Project not found' },
         { status: 404 }
+      )
+    }
+
+    // Verify user has membership to this project's organization
+    const { data: membership, error: membershipError } = await supabase
+      .from('memberships')
+      .select('org_id')
+      .eq('user_id', user.id)
+      .eq('org_id', project.org_id)
+      .single()
+
+    if (membershipError || !membership) {
+      return NextResponse.json(
+        { error: 'Access denied: You do not have permission to delete this project' },
+        { status: 403 }
       )
     }
 
@@ -149,7 +149,7 @@ export async function DELETE(
       .from('projects')
       .delete()
       .eq('id', projectId)
-      .eq('org_id', membership.org_id)
+      .eq('org_id', project.org_id)
 
     if (deleteError) {
       return NextResponse.json(

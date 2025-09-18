@@ -8,13 +8,20 @@ export interface Status {
   description: string
 }
 
+export interface ApiConfig {
+  label?: string
+  type?: 'text' | 'password' | 'email'
+  placeholder?: string
+  description?: string
+}
+
 export interface Platform {
   id: string
   created_at: string
   name: string
   description: string | null
   files: string[] | null  // For CSV upload migration type
-  api: Record<string, string> | null  // For API key migration type  
+  api: Record<string, ApiConfig> | null  // For API key migration type  
   plugin: string | null  // For plugin/extension migration type
   video_guide: string | null
   items: ItemType[] | null
@@ -82,7 +89,7 @@ export interface CreateProjectData {
   shopify_url?: string
   shopify_access_token?: string
   items?: ItemType[]
-  api_data?: Record<string, string>
+  api?: Record<string, string>
 }
 
 export interface UploadedFile {
@@ -99,4 +106,39 @@ export interface AdditionalFile {
   name: string        // User-provided descriptive name
   description: string // User-provided description
   file: File         // The actual file
+}
+
+export interface Organization {
+  id: string
+  name: string
+  domain: string
+  country?: string | null
+  created_at: string
+}
+
+export interface Membership {
+  id: string
+  role: string
+  organization: Organization
+}
+
+export interface OrganizationContextType {
+  currentOrganization: Organization | null
+  organizations: Membership[]
+  loading: boolean
+  switchOrganization: (orgId: string) => void
+  refreshOrganizations: () => Promise<void>
+}
+
+// Database response types for proper type safety
+export interface MembershipResponse {
+  id: string
+  role: string
+  organizations: {
+    id: string
+    name: string
+    domain: string
+    country?: string | null
+    created_at: string
+  } | null
 }

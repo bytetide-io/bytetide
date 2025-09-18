@@ -339,15 +339,16 @@ export function EditProjectForm({ project, onSuccess, onCancel }: EditProjectFor
             </div>
             <p className="text-sm text-blue-700">Update your API credentials.</p>
 
-            {Object.entries(platform.api).map(([key, instructions]) => (
+            {Object.entries(platform.api).map(([key, config]) => (
               <Input
                 key={key}
-                label={key}
-                type={key.toLowerCase().includes('token') || key.toLowerCase().includes('key') || key.toLowerCase().includes('secret') ? 'password' : 'text'}
+                label={config.label || key}
+                type={config.type === 'password' ? 'password' : 'text'}
                 value={formData[`api_${key}`] || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, [`api_${key}`]: e.target.value }))}
+                placeholder={config.placeholder || `Enter ${key}...`}
                 error={errors[`api_${key}`]}
-                helpText={instructions}
+                helpText={config.description}
                 required
               />
             ))}

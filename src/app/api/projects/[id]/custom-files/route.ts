@@ -39,26 +39,27 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid authentication' }, { status: 401 })
     }
 
-    // Verify user has access to this project
-    const { data: membership } = await supabaseAdmin
-      .from('memberships')
-      .select('org_id, role')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!membership) {
-      return NextResponse.json({ error: 'User is not part of an organization' }, { status: 403 })
-    }
-
+    // Get the project first to identify which organization it belongs to
     const { data: project } = await supabaseAdmin
       .from('projects')
       .select('id, org_id')
       .eq('id', projectId)
-      .eq('org_id', membership.org_id)
       .single()
 
     if (!project) {
-      return NextResponse.json({ error: 'Project not found or access denied' }, { status: 404 })
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+    }
+
+    // Verify user has membership to this project's organization
+    const { data: membership } = await supabaseAdmin
+      .from('memberships')
+      .select('org_id, role')
+      .eq('user_id', user.id)
+      .eq('org_id', project.org_id)
+      .single()
+
+    if (!membership) {
+      return NextResponse.json({ error: 'Access denied: You do not have permission to access this project' }, { status: 403 })
     }
 
     // Check permissions - members, admins, and owners can upload
@@ -175,26 +176,27 @@ export async function GET(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Verify user has access to this project
-    const { data: membership } = await supabaseAdmin
-      .from('memberships')
-      .select('org_id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!membership) {
-      return NextResponse.json({ error: 'User is not part of an organization' }, { status: 403 })
-    }
-
+    // Get the project first to identify which organization it belongs to
     const { data: project } = await supabaseAdmin
       .from('projects')
       .select('id, org_id')
       .eq('id', projectId)
-      .eq('org_id', membership.org_id)
       .single()
 
     if (!project) {
-      return NextResponse.json({ error: 'Project not found or access denied' }, { status: 404 })
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+    }
+
+    // Verify user has membership to this project's organization
+    const { data: membership } = await supabaseAdmin
+      .from('memberships')
+      .select('org_id')
+      .eq('user_id', user.id)
+      .eq('org_id', project.org_id)
+      .single()
+
+    if (!membership) {
+      return NextResponse.json({ error: 'Access denied: You do not have permission to access this project' }, { status: 403 })
     }
 
     // Fetch custom CSV files
@@ -256,31 +258,32 @@ export async function DELETE(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Verify user has access and permissions
+    // Get the project first to identify which organization it belongs to
+    const { data: project } = await supabaseAdmin
+      .from('projects')
+      .select('id, org_id')
+      .eq('id', projectId)
+      .single()
+
+    if (!project) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+    }
+
+    // Verify user has membership to this project's organization
     const { data: membership } = await supabaseAdmin
       .from('memberships')
       .select('org_id, role')
       .eq('user_id', user.id)
+      .eq('org_id', project.org_id)
       .single()
 
     if (!membership) {
-      return NextResponse.json({ error: 'User is not part of an organization' }, { status: 403 })
+      return NextResponse.json({ error: 'Access denied: You do not have permission to access this project' }, { status: 403 })
     }
 
     // Check permissions - only admins and owners can delete
     if (!['admin', 'owner'].includes(membership.role)) {
       return NextResponse.json({ error: 'Insufficient permissions to delete files' }, { status: 403 })
-    }
-
-    const { data: project } = await supabaseAdmin
-      .from('projects')
-      .select('id, org_id')
-      .eq('id', projectId)
-      .eq('org_id', membership.org_id)
-      .single()
-
-    if (!project) {
-      return NextResponse.json({ error: 'Project not found or access denied' }, { status: 404 })
     }
 
     // Get file details

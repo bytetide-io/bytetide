@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
@@ -24,6 +27,7 @@
     "escape-string-regexp": "^5.0.0",
     "fast-glob": "^3.3.3",
     "framer-motion": "^12.23.11",
+    "lucide-react": "^0.544.0",
     "next": "^15",
     "react": "^19",
     "react-dom": "^19",
@@ -37,11 +41,17 @@
     "unified-conditional": "0.0.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.1.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9.32.0",
     "eslint-config-next": "^15",
+    "jest": "^30.1.3",
+    "jest-environment-jsdom": "^30.1.2",
+    "msw": "^2.11.2",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "sharp": "0.34.3"

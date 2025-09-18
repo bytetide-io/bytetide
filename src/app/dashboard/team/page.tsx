@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
+import { useOrganization } from '@/lib/contexts/OrganizationContext'
 import { Input } from '@/components/Input'
 import { Button } from '@/components/Button'
 import { Alert } from '@/components/Alert'
@@ -33,10 +34,10 @@ const roleOptions = [
 
 export default function TeamPage() {
   const router = useRouter()
+  const { currentOrganization, loading: orgLoading } = useOrganization()
   
   const [members, setMembers] = useState<TeamMember[]>([])
   const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([])
-  const [currentOrg, setCurrentOrg] = useState<string>('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('member')
   
@@ -47,27 +48,11 @@ export default function TeamPage() {
 
   useEffect(() => {
     const loadTeamData = async () => {
+      if (!currentOrganization) {
+        return // Organization context will handle redirects
+      }
+
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        
-        if (!user) {
-          router.push('/auth/login')
-          return
-        }
-
-        // Get user's organization
-        const { data: membership } = await supabase
-          .from('memberships')
-          .select('org_id, organizations(name)')
-          .eq('user_id', user.id)
-          .single()
-
-        if (!membership) {
-          router.push('/onboarding')
-          return
-        }
-
-        setCurrentOrg(membership.org_id)
 
         // Load team members
         const { data: membersData, error: membersError } = await supabase
@@ -79,7 +64,7 @@ export default function TeamPage() {
             user_id,
             users!inner(full_name, email)
           `)
-          .eq('org_id', membership.org_id)
+          .eq('org_id', currentOrganization.id)
 
         if (membersError) {
           console.error('Error loading members:', membersError)
@@ -99,7 +84,7 @@ export default function TeamPage() {
         const { data: invitationsData, error: invitationsError } = await supabase
           .from('invitations')
           .select('*')
-          .eq('organisation', membership.org_id)
+          .eq('organisation', currentOrganization.id)
           .eq('status', 'pending')
 
         if (invitationsError) {
@@ -118,7 +103,7 @@ export default function TeamPage() {
     }
 
     loadTeamData()
-  }, [router])
+  }, [currentOrganization])
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -144,7 +129,7 @@ export default function TeamPage() {
       const { data: existingMember } = await supabase
         .from('memberships')
         .select('id, users!inner(email)')
-        .eq('org_id', currentOrg)
+        .eq('org_id', currentOrganization!.id)
 
       const memberEmails = existingMember?.map((m: any) => m.users?.email).filter(Boolean) || []
       if (memberEmails.includes(inviteEmail)) {
@@ -157,7 +142,7 @@ export default function TeamPage() {
       const { data: existingInvite } = await supabase
         .from('invitations')
         .select('id')
-        .eq('organisation', currentOrg)
+        .eq('organisation', currentOrganization!.id)
         .eq('invited_email', inviteEmail)
         .eq('status', 'pending')
         .single()
@@ -172,7 +157,7 @@ export default function TeamPage() {
       const { data: invitation, error: inviteError } = await supabase
         .from('invitations')
         .insert({
-          organisation: currentOrg,
+          organisation: currentOrganization!.id,
           invited_email: inviteEmail,
           role: inviteRole
         })
@@ -237,7 +222,7 @@ export default function TeamPage() {
     }
   }
 
-  if (loading) {
+  if (orgLoading || loading) {
     return (
       <div className="animate-pulse">
         <div className="h-8 bg-slate-200 rounded w-32 mb-6"></div>
@@ -247,6 +232,10 @@ export default function TeamPage() {
         </div>
       </div>
     )
+  }
+
+  if (!currentOrganization) {
+    return null // Organization context will handle redirects
   }
 
   return (
