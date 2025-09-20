@@ -19,7 +19,7 @@ export default function Home() {
             The data migration specialist agencies rely on
           </h1>
           <p className="mt-6 text-xl text-neutral-600">
-            Every migration carries the same risks: blown timelines, resource drain, and the possibility of corrupted data that could damage client trust. I've built systems to eliminate these risks entirely—delivering faster, cleaner results while your team stays focused on billable work
+            Every migration carries the same risks: blown timelines, resource drain, and the possibility of corrupted data that could damage client trust. I&#39;ve built systems to eliminate these risks entirely—delivering faster, cleaner results while your team stays focused on billable work
 
           </p>
           <div className="mt-10 flex gap-x-6">
