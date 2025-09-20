@@ -16,12 +16,11 @@ export default function Home() {
       <Container className="mt-24 sm:mt-32 md:mt-56">
         <FadeIn className="max-w-4xl">
           <h1 className="font-display text-5xl font-medium tracking-tight text-balance text-neutral-950 sm:text-7xl">
-            Hi, I&apos;m Hans-Christian
+            The data migration specialist agencies rely on
           </h1>
           <p className="mt-6 text-xl text-neutral-600">
-            I&apos;m a Shopify migration specialist based in Copenhagen, working with agencies worldwide.
-            I migrate any ecommerce data into Shopify, no matter how complex. From legacy platforms to modern systems,
-            I transform and move your data to Shopify with precision and reliability.
+            Every migration carries the same risks: blown timelines, resource drain, and the possibility of corrupted data that could damage client trust. I've built systems to eliminate these risks entirely—delivering faster, cleaner results while your team stays focused on billable work
+
           </p>
           <div className="mt-10 flex gap-x-6">
             <button
@@ -92,6 +91,8 @@ export default function Home() {
                   className="flex items-center justify-center w-40 h-20 bg-white rounded-lg shadow-sm border border-neutral-200 px-6 hover:shadow-md hover:scale-105 transition-all duration-300 group text-neutral-500 hover:text-neutral-700"
                 >
                   <Image
+                    width={256}
+                    height={256}
                     src="/images/clients/edition.svg"
                     alt="Edition"
                     className="max-w-full max-h-full object-contain transition-all duration-300"
@@ -104,6 +105,8 @@ export default function Home() {
                   className="flex items-center justify-center w-40 h-20 bg-white rounded-lg shadow-sm border border-neutral-200 px-6 hover:shadow-md hover:scale-105 transition-all duration-300 group text-neutral-500 hover:text-neutral-700"
                 >
                   <Image
+                    width={256}
+                    height={256}
                     src="/images/clients/grafikr.svg"
                     alt="Grafikr"
                     className="max-w-full max-h-full object-contain transition-all duration-300"
@@ -116,6 +119,8 @@ export default function Home() {
                   className="flex items-center justify-center w-40 h-20 bg-white rounded-lg shadow-sm border border-neutral-200 px-6 hover:shadow-md hover:scale-105 transition-all duration-300 group"
                 >
                   <Image
+                    width={256}
+                    height={256}
                     src="/images/clients/zago.webp"
                     alt="Zago Agency"
                     className="max-w-full max-h-full object-contain filter grayscale opacity-70 group-hover:opacity-100 transition-all duration-300"
@@ -133,7 +138,7 @@ export default function Home() {
       <Container className="mt-24 sm:mt-32 lg:mt-40">
         <FadeIn className="text-center">
           <h2 className="font-display text-3xl font-medium tracking-tight text-neutral-950 sm:text-4xl">
-            I solve your headaches
+            I solve your <b>headaches</b>
           </h2>
         </FadeIn>
 
@@ -317,17 +322,19 @@ export default function Home() {
 
       <Container className="mt-24 sm:mt-32 lg:mt-40">
         <FadeIn>
-          <div className="mx-auto max-w-4xl">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
-              <div className="text-center">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+              <div className="lg:col-span-2 text-center">
                 <Image
+                  width={400}
+                  height={400}
                   src="/images/profile_image.png"
                   alt="Hans-Christian Pedersen"
-                  className="w-64 h-64 mx-auto rounded-lg object-cover shadow-lg"
+                  className="w-80 h-80 lg:w-96 lg:h-96 mx-auto rounded-lg object-cover shadow-xl"
                 />
               </div>
 
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-3 space-y-6">
                 <div>
                   <h2 className="font-display text-3xl font-semibold text-neutral-950 mb-4">
                     About Hans-Christian
@@ -344,7 +351,7 @@ export default function Home() {
                     millions of products from hundreds of data sources every day.
                   </p>
                   <p>
-                    From generating large ML datasets to designing complex CNN models for image retrieval tasks,
+                    From generating large ML datasets to designing complex CNN models for Image retrieval tasks,
                     I&apos;ve tackled some of the most challenging data problems in the industry working with clients across Europe, North America, and beyond.
                   </p>
                   <p>
@@ -391,7 +398,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span>Images & media files</span>
+                  <span>Image width={256} height={256}s & media files</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
@@ -491,162 +498,6 @@ export default function Home() {
         </FadeIn>
       </Container>
 
-      {/* Platform Logos Section */}
-      <Container className="mt-16 sm:mt-20">
-        <FadeIn className="text-center">
-          <p className="text-lg font-medium text-neutral-600 mb-8">
-            From my base in Copenhagen, I migrate from any platform into Shopify for clients worldwide
-          </p>
-          <div className="relative overflow-hidden">
-            <div
-              id="platform-logo-slider"
-              className="flex items-center justify-center gap-12 animate-scroll"
-              style={{
-                animation: 'scroll 35s linear infinite'
-              }}
-            >
-              {/* First set of platform logos */}
-              <div className="flex items-center gap-12 whitespace-nowrap">
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/woocommerce.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="WooCommerce"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/magento.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Magento"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/bigcommerce.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="BigCommerce"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/squarespace.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Squarespace"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/wix.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Wix"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/prestashop.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="PrestaShop"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/opencart.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="OpenCart"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/etsy.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Etsy"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/wordpress.org/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="WordPress"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <span className="text-sm font-medium text-neutral-500">+ Any Platform</span>
-                </div>
-              </div>
-              {/* Duplicate set for seamless loop */}
-              <div className="flex items-center gap-12 whitespace-nowrap">
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/woocommerce.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="WooCommerce"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/magento.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Magento"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/bigcommerce.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="BigCommerce"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/squarespace.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Squarespace"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/wix.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Wix"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/prestashop.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="PrestaShop"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/opencart.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="OpenCart"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/etsy.com/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="Etsy"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <Image
-                    src="https://cdn.brandfetch.io/wordpress.org/w/512/h/132/logo?c=1idyEy1pUkUkObYwiZM"
-                    alt="WordPress"
-                    className="max-w-full max-h-full object-contain filter grayscale opacity-70"
-                  />
-                </div>
-                <div className="flex items-center justify-center w-32 h-16 bg-white rounded-lg shadow-sm border border-neutral-200 px-4">
-                  <span className="text-sm font-medium text-neutral-500">+ Any Platform</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      </Container>
 
       <Container className="mt-24 sm:mt-32 lg:mt-40">
         <FadeIn className="-mx-6 rounded-4xl bg-neutral-950 px-6 py-20 sm:mx-0 sm:py-32 md:px-12">
