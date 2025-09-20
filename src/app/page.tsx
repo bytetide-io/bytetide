@@ -19,7 +19,7 @@ export default function Home() {
             The data migration specialist agencies rely on
           </h1>
           <p className="mt-6 text-xl text-neutral-600">
-            Every migration carries the same risks: blown timelines, resource drain, and the possibility of corrupted data that could damage client trust. I've built systems to eliminate these risks entirely—delivering faster, cleaner results while your team stays focused on billable work
+            Every migration carries the same risks: blown timelines, resource drain, and the possibility of corrupted data that could damage client trust. I&#39;ve built systems to eliminate these risks entirely—delivering faster, cleaner results while your team stays focused on billable work
 
           </p>
           <div className="mt-10 flex gap-x-6">
@@ -75,12 +75,12 @@ export default function Home() {
       </Container>
 
       {/* Agency Partners Section */}
-      <div className="mt-24 sm:mt-32 bg-gradient-to-b from-neutral-50 to-white py-12 sm:py-16">
+      {/* <div className="mt-24 sm:mt-32 bg-gradient-to-b from-neutral-50 to-white py-12 sm:py-16">
         <Container>
           <FadeIn className="text-center">
             <div className="mx-auto max-w-4xl">
               <p className="text-sm font-medium text-neutral-500 mb-6">
-                Are you a shop owner? I recommend these agencies as I only work directly with agencies
+                Are you a shop owner looking to migrate? These agencies will handle your entire Shopify migration project:
               </p>
 
               <div className="flex items-center justify-center gap-8 flex-wrap">
@@ -133,7 +133,7 @@ export default function Home() {
             </div>
           </FadeIn>
         </Container>
-      </div>
+      </div> */}
 
       <Container className="mt-24 sm:mt-32 lg:mt-40">
         <FadeIn className="text-center">
