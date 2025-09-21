@@ -40,7 +40,8 @@ export async function POST(
     }
 
     // Get the project first to identify which organization it belongs to
-    const { data: project } = await supabaseAdmin
+    // Use authenticated user client to respect RLS policies
+    const { data: project } = await supabaseClient
       .from('projects')
       .select('id, org_id')
       .eq('id', projectId)
@@ -177,7 +178,8 @@ export async function GET(
     )
 
     // Get the project first to identify which organization it belongs to
-    const { data: project } = await supabaseAdmin
+    // Use authenticated user client to respect RLS policies
+    const { data: project } = await supabaseClient
       .from('projects')
       .select('id, org_id')
       .eq('id', projectId)
@@ -259,7 +261,8 @@ export async function DELETE(
     )
 
     // Get the project first to identify which organization it belongs to
-    const { data: project } = await supabaseAdmin
+    // Use authenticated user client to respect RLS policies
+    const { data: project } = await supabaseClient
       .from('projects')
       .select('id, org_id')
       .eq('id', projectId)
