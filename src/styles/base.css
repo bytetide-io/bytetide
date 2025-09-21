@@ -6,3 +6,12 @@
   font-stretch: 75% 125%;
   src: url('../fonts/Mona-Sans.var.woff2') format('woff2');
 }
+
+@keyframes move-x {
+  from {
+    transform: translateX(var(--move-x-from, -100%));
+  }
+  to {
+    transform: translateX(var(--move-x-to, calc(100% + 100cqw)));
+  }
+}

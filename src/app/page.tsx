@@ -5,6 +5,7 @@ import { Container } from '@/components/Container'
 import { FadeIn } from '@/components/FadeIn'
 import { RootLayout } from '@/components/RootLayout'
 import Image from 'next/image'
+import { BentoSection } from '@/components/home/BentoSection'
 export const metadata: Metadata = {
   description:
     'Expert ecommerce ETL specialist handling any Shopify migration case - from simple to complex data transformations.',
@@ -13,25 +14,46 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <RootLayout>
-      <Container className="mt-24 sm:mt-32 md:mt-56">
-        <FadeIn className="max-w-4xl">
-          <h1 className="font-display text-5xl font-medium tracking-tight text-balance text-neutral-950 sm:text-7xl">
-            The data migration specialist agencies rely on
-          </h1>
-          <p className="mt-6 text-xl text-neutral-600">
-            Every migration carries the same risks: blown timelines, resource drain, and the possibility of corrupted data that could damage client trust. I&#39;ve built systems to eliminate these risks entirely—delivering faster, cleaner results while your team stays focused on billable work
+      <Container className="mt-16 sm:mt-20 md:mt-38">
+        <FadeIn>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Content Column */}
+            <div className="max-w-5xl">
+              <h1 className="font-display text-4xl font-medium tracking-tight text-balance text-neutral-950 sm:text-5xl lg:text-6xl">
+                The data Shopify migration specialist agencies rely on
+              </h1>
+              <p className="mt-6 text-xl text-neutral-600">
+                Every migration carries the same risks: blown timelines, resource drain, and the possibility of corrupted data that could damage client trust. I&#39;ve built systems to eliminate these risks entirely - delivering faster, cleaner results while your team stays focused on billable work
+              </p>
+              <div className="mt-10 flex gap-x-6">
+                <button
+                  id="hero-calendar-btn"
+                  className="inline-flex items-center justify-center px-8 py-4 bg-neutral-950 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:scale-105 transform transition-all duration-300 ease-out shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  Get in touch
+                </button>
+              </div>
+            </div>
 
-          </p>
-          <div className="mt-10 flex gap-x-6">
-            <button
-              id="hero-calendar-btn"
-              className="inline-flex items-center justify-center px-8 py-4 bg-neutral-950 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:scale-105 transform transition-all duration-300 ease-out shadow-lg hover:shadow-xl cursor-pointer"
-            >
-              <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-              </svg>
-              Book a meeting
-            </button>
+            {/* Profile Image Column */}
+            <div className="relative lg:order-last">
+              <div className="relative mx-auto w-80 h-80 lg:w-96 lg:h-96 mb-20">
+                <Image
+                  width={400}
+                  height={400}
+                  src="/images/profile_image.png"
+                  alt="Hans-Christian Pedersen - ETL Migration Specialist"
+                  className="w-full h-full object-cover rounded-2xl shadow-xl"
+                  priority
+                />
+                {/* Floating badge */}
+                <div className="absolute -bottom-3 -right-3 bg-white rounded-lg px-3 py-2 shadow-lg border border-neutral-200">
+                  <div className="text-xs font-semibold text-neutral-950">Hans-Christian Pedersen</div>
+                  <div className="text-xs text-neutral-500">Copenhagen, Denmark</div>
+                  <div className="text-xs text-neutral-500">ETL Migration Expert</div>
+                </div>
+              </div>
+            </div>
           </div>
         </FadeIn>
       </Container>
@@ -51,9 +73,9 @@ export default function Home() {
                 <div className="text-sm text-neutral-500 mt-1">Successful Migrations</div>
               </div>
               <div className="text-center">
-                <div className="text-5xl font-bold text-neutral-950">100+</div>
-                <div className="text-sm font-medium text-neutral-600 mt-2">MIGRATIONS</div>
-                <div className="text-sm text-neutral-500 mt-1">Migrations Performed</div>
+                <div className="text-5xl font-bold text-neutral-950">+5 mio</div>
+                <div className="text-sm font-medium text-neutral-600 mt-2">OBJECTS</div>
+                <div className="text-sm text-neutral-500 mt-1">Objects Migrated</div>
               </div>
               <div className="text-center">
                 <div className="text-5xl font-bold text-neutral-950">43</div>
@@ -65,12 +87,144 @@ export default function Home() {
         </Container>
       </div>
 
+      <BentoSection />
+      <FadeIn className="mt-12 text-center">
+        <div className="bg-neutral-50 rounded-2xl p-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-neutral-200 rounded-full mb-3">
+                <svg className="w-6 h-6 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-neutral-900 mb-2">Data Migration</h4>
+              <p className="text-sm text-neutral-600">From legacy CSV files to modern APIs - I move it all into Shopify</p>
+            </div>
+
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-neutral-200 rounded-full mb-3">
+                <svg className="w-6 h-6 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-neutral-900 mb-2">301 Redirects</h4>
+              <p className="text-sm text-neutral-600">Preserve SEO rankings with proper URL redirects from old to new store</p>
+            </div>
+
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-neutral-200 rounded-full mb-3">
+                <svg className="w-6 h-6 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-neutral-900 mb-2">Translations</h4>
+              <p className="text-sm text-neutral-600">Handle multilingual stores with proper translation mapping and structure</p>
+            </div>
+          </div>
+        </div>
+      </FadeIn>
+
       <Container className="mt-16 sm:mt-20">
         <FadeIn className="text-center">
           <p className="text-2xl text-neutral-600 font-medium max-w-4xl mx-auto">
             Think of me as your dedicated Shopify migration engineer from Copenhagen who does nothing but moving data into Shopify for agencies worldwide.
             <span className="text-neutral-950"> That&apos;s all I do, all day, every day.</span>
           </p>
+        </FadeIn>
+      </Container>
+
+      {/* Agency Fit Section */}
+      <Container className="mt-24 sm:mt-32 lg:mt-40">
+        <FadeIn>
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-display text-3xl font-medium tracking-tight text-neutral-950 sm:text-4xl mb-8">
+              Is ByteTide right for your agency?
+            </h2>
+            <p className="text-xl text-neutral-600 mb-12">
+              You&apos;ll benefit from my expertise if any of these apply to your agency:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+              <div className="bg-white p-6 rounded-xl border border-neutral-200">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-4 h-4 text-neutral-950" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-neutral-950 mb-2">You spend +3 hours on a migration</h3>
+                    <p className="text-neutral-600 text-sm">
+                      If migrations are taking your team more than a few hours, you&apos;re losing money on manual work that should be automated.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-neutral-200">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-4 h-4 text-neutral-950" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-neutral-950 mb-2">You deliver high quality for your clients</h3>
+                    <p className="text-neutral-600 text-sm">
+                      Your reputation depends on flawless deliveries. You can&apos;t afford data corruption or migration failures.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-neutral-200">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-4 h-4 text-neutral-950" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-neutral-950 mb-2">You don&apos;t have a fulltime data engineer</h3>
+                    <p className="text-neutral-600 text-sm">
+                      Hiring a data engineer for occasional migrations doesn&apos;t make financial sense. You need expertise on-demand.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-neutral-200">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg className="w-4 h-4 text-neutral-950" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-neutral-950 mb-2">You value an expert who picks up the phone</h3>
+                    <p className="text-neutral-600 text-sm">
+                      You need responsive communication and direct access to the person doing the work, not a support ticket system.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-12 p-8 bg-neutral-50 rounded-2xl">
+              <h3 className="font-display text-xl font-semibold text-neutral-950 mb-4">
+                Ready to work with a migration specialist?
+              </h3>
+              <p className="text-neutral-600 mb-6">
+                Stop wrestling with complex migrations and focus on what you do best. Let me handle the data engineering while you deliver exceptional results to your clients.
+              </p>
+              <button
+                id="agency-fit-calendar-btn"
+                className="inline-flex items-center justify-center px-8 py-4 bg-neutral-950 text-white font-semibold rounded-lg hover:bg-neutral-800 hover:scale-105 transform transition-all duration-300 ease-out shadow-lg hover:shadow-xl cursor-pointer"
+              >
+                Get in touch
+              </button>
+            </div>
+          </div>
         </FadeIn>
       </Container>
 
@@ -371,132 +525,8 @@ export default function Home() {
         </FadeIn>
       </Container>
 
-      <Container className="mt-24 sm:mt-32 lg:mt-40">
-        <FadeIn className="text-center">
-          <h2 className="font-display text-3xl font-medium tracking-tight text-neutral-950 sm:text-4xl">
-            Any ecommerce data into Shopify
-          </h2>
-          <p className="mt-6 text-xl text-neutral-600 max-w-3xl mx-auto">
-            I migrate all types of ecommerce data into Shopify, regardless of the source platform or how complex the data structure is.
-          </p>
-        </FadeIn>
 
-        <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <FadeIn>
-            <div className="rounded-3xl bg-white p-8 ring-1 ring-neutral-950/5">
-              <h3 className="font-display text-xl font-semibold text-neutral-950 mb-6">
-                Product Data
-              </h3>
-              <div className="space-y-3 text-neutral-600">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span>Product catalogs & variants</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span>Pricing & inventory levels</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span>Image width={256} height={256}s & media files</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span>SEO metadata & descriptions</span>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
 
-          <FadeIn>
-            <div className="rounded-3xl bg-white p-8 ring-1 ring-neutral-950/5">
-              <h3 className="font-display text-xl font-semibold text-neutral-950 mb-6">
-                Customer Data
-              </h3>
-              <div className="space-y-3 text-neutral-600">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                  <span>Customer profiles & accounts</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                  <span>Order history & transactions</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                  <span>Wishlists & shopping carts</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                  <span>Reviews & ratings</span>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-
-          <FadeIn>
-            <div className="rounded-3xl bg-white p-8 ring-1 ring-neutral-950/5">
-              <h3 className="font-display text-xl font-semibold text-neutral-950 mb-6">
-                Business Data
-              </h3>
-              <div className="space-y-3 text-neutral-600">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                  <span>Analytics & reporting data</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                  <span>Marketing campaigns & coupons</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                  <span>Store configurations & settings</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                  <span>Custom fields & integrations</span>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-
-        <FadeIn className="mt-12 text-center">
-          <div className="bg-neutral-50 rounded-2xl p-8 max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-neutral-200 rounded-full mb-3">
-                  <svg className="w-6 h-6 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-neutral-900 mb-2">Data Migration</h4>
-                <p className="text-sm text-neutral-600">From legacy CSV files to modern APIs - I move it all into Shopify</p>
-              </div>
-
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-neutral-200 rounded-full mb-3">
-                  <svg className="w-6 h-6 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-neutral-900 mb-2">301 Redirects</h4>
-                <p className="text-sm text-neutral-600">Preserve SEO rankings with proper URL redirects from old to new store</p>
-              </div>
-
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-neutral-200 rounded-full mb-3">
-                  <svg className="w-6 h-6 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-neutral-900 mb-2">Translations</h4>
-                <p className="text-sm text-neutral-600">Handle multilingual stores with proper translation mapping and structure</p>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      </Container>
 
 
       <Container className="mt-24 sm:mt-32 lg:mt-40">
@@ -507,7 +537,7 @@ export default function Home() {
                 Ready to discuss your Shopify migration?
               </h2>
               <p className="mt-6 text-xl text-neutral-300">
-                Let&apos;s talk about your Shopify migration challenges and how I, Hans-Christian from Copenhagen, can solve them for your agency.
+                Let&apos;s talk about your Shopify migration challenges and how I can solve them for your agency.
               </p>
               <div className="mt-8 flex flex-col gap-4">
                 <div className="inline-block">
@@ -611,6 +641,7 @@ export default function Home() {
               function initCalendarModal() {
                 const openBtn = document.getElementById('open-calendar-modal');
                 const heroBtn = document.getElementById('hero-calendar-btn');
+                const agencyFitBtn = document.getElementById('agency-fit-calendar-btn');
                 const closeBtn = document.getElementById('close-calendar-modal');
                 const modal = document.getElementById('calendar-modal');
                 
@@ -674,6 +705,10 @@ export default function Home() {
                   
                   if (heroBtn) {
                     heroBtn.addEventListener('click', openModal);
+                  }
+                  
+                  if (agencyFitBtn) {
+                    agencyFitBtn.addEventListener('click', openModal);
                   }
                   
                   closeBtn.addEventListener('click', closeModal);
