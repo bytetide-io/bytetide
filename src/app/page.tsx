@@ -525,71 +525,7 @@ export default function Home() {
         </FadeIn>
       </Container>
 
-      {/* Case Study Section */}
-      <Container className="mt-24 sm:mt-32 lg:mt-40">
-        <FadeIn>
-          <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-3xl font-medium tracking-tight text-neutral-950 sm:text-4xl mb-8">
-              Case Study: Turning a Broken Migration Into a Success Story
-            </h2>
 
-            <div className="space-y-8">
-              <div>
-                <h3 className="font-display text-xl font-semibold text-neutral-950 mb-4">
-                  The Challenge
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  A Shopify agency had promised a migration from a Danish shop system into Shopify. They had done a similar migration before, so they estimated around 8 hours of work. But once the project began and the first payment had been taken, everything fell apart.
-                </p>
-                <p className="text-neutral-600 leading-relaxed mt-4">
-                  The client&apos;s shop wasn&apos;t running on the same system version as the one migrated previously—it was a legacy version. That meant exports didn&apos;t work, and the agency&apos;s tried-and-true process was suddenly useless.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-display text-xl font-semibold text-neutral-950 mb-4">
-                  The Solution
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  Instead, the agency made a smarter move: they brought in an outside expert who specializes in complex e-commerce migrations. That&apos;s when I was hired. With deep experience in ETL pipelines, I quickly recognized the issue—and already had an extraction process ready for this exact edge case.
-                </p>
-                <p className="text-neutral-600 leading-relaxed mt-4">
-                  Within 48 hours, the full migration was complete. The client got exactly what they were promised, and the agency avoided a difficult conversation.
-                </p>
-              </div>
-
-              <div className="bg-neutral-50 rounded-2xl p-8">
-                <h3 className="font-display text-xl font-semibold text-neutral-950 mb-6">
-                  The Outcome
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-start">
-                    <div className="w-2 h-2 bg-neutral-950 rounded-full mr-4 mt-2 flex-shrink-0"></div>
-                    <span className="text-neutral-600">The agency protected their relationship and reputation with the client.</span>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-2 h-2 bg-neutral-950 rounded-full mr-4 mt-2 flex-shrink-0"></div>
-                    <span className="text-neutral-600">The migration was delivered on time—despite the unexpected complexity.</span>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-2 h-2 bg-neutral-950 rounded-full mr-4 mt-2 flex-shrink-0"></div>
-                    <span className="text-neutral-600">The agency even ended up with a better margin than originally estimated, since the problem was solved faster by outsourcing than by trying to build a fix in-house.</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-l-4 border-neutral-950 pl-6">
-                <h3 className="font-display text-lg font-semibold text-neutral-950 mb-3">
-                  Takeaway
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  Migrations often look simple on paper, but legacy systems can hide edge cases that derail projects. By partnering with a migration specialist, agencies can protect their client relationships, keep projects profitable, and deliver confidently—even when surprises appear.
-                </p>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      </Container>
 
 
 
