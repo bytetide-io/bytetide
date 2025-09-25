@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card'
 import { Select } from '@/components/Select'
 import { Button } from '@/components/Button'
 import { Alert } from '@/components/Alert'
+import { JsonViewer } from '@/components/JsonViewer'
 
 interface PreviewFile {
   id: number
@@ -45,76 +46,330 @@ const TYPE_LABELS: Record<string, string> = {
 
 // Context View Components
 function ProductContextView({ item }: { item: any }) {
-  const primaryImage = item.files?.[0]?.originalSource || item.variants?.[0]?.file?.originalSource
-  const price = item.variants?.[0]?.price ? `${item.variants[0].price} DKK` : 'No price'
+  const primaryImage = item.files?.[0]?.originalSource
   const totalVariants = item.variants?.length || 0
+  const totalImages = item.files?.length || 0
+  const totalMetafields = item.metafields?.length || 0
+  const totalOptions = item.productOptions?.length || 0
+  const priceRange = item.variants?.length > 0 ? {
+    min: Math.min(...item.variants.map((v: any) => parseFloat(v.price || '0'))),
+    max: Math.max(...item.variants.map((v: any) => parseFloat(v.price || '0')))
+  } : null
 
   return (
-    <div className="space-y-4">
-      <div className="flex space-x-4">
+    <div className="space-y-6">
+      {/* Product Header */}
+      <div className="flex space-x-6">
         {primaryImage && (
           <div className="flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={primaryImage}
               alt={item.title || 'Product image'}
-              className="w-20 h-20 object-cover rounded border"
+              className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
               onError={(e) => { e.currentTarget.style.display = 'none' }}
             />
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <h4 className="text-lg font-semibold text-slate-900 mb-2">{item.title}</h4>
+          <h4 className="text-xl font-bold text-slate-900 mb-3">{item.title || 'Untitled Product'}</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-slate-600">Price:</span> <span className="font-medium">{price}</span>
+            <div className="space-y-2">
+              <div><span className="text-slate-600 font-medium">Status:</span> 
+                <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                  item.status === 'DRAFT' ? 'bg-orange-100 text-orange-700' : 
+                  item.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 
+                  'bg-slate-100 text-slate-700'
+                }`}>{item.status || 'Unknown'}</span>
+              </div>
+              <div><span className="text-slate-600 font-medium">Vendor:</span> 
+                <span className="ml-2 font-medium text-slate-900">{item.vendor || 'N/A'}</span>
+              </div>
+              <div><span className="text-slate-600 font-medium">Handle:</span> 
+                <span className="ml-2 font-mono text-xs text-slate-700">{item.handle || 'Not set'}</span>
+              </div>
+              <div><span className="text-slate-600 font-medium">Gift Card:</span> 
+                <span className={`ml-2 ${item.giftCard ? 'text-green-600' : 'text-slate-600'}`}>
+                  {item.giftCard ? 'Yes' : 'No'}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-slate-600">Status:</span> <span className={`font-medium ${item.status === 'DRAFT' ? 'text-orange-600' : 'text-green-600'}`}>{item.status}</span>
-            </div>
-            <div>
-              <span className="text-slate-600">Variants:</span> <span className="font-medium">{totalVariants}</span>
-            </div>
-            <div>
-              <span className="text-slate-600">Vendor:</span> <span className="font-medium">{item.vendor || 'N/A'}</span>
+            <div className="space-y-2">
+              <div><span className="text-slate-600 font-medium">Price Range:</span> 
+                <span className="ml-2 font-semibold text-slate-900">
+                  {priceRange ? 
+                    (priceRange.min === priceRange.max ? 
+                      `${priceRange.min.toFixed(2)}` : 
+                      `${priceRange.min.toFixed(2)} - ${priceRange.max.toFixed(2)}`
+                    ) : 'N/A'
+                  }
+                </span>
+              </div>
+              <div><span className="text-slate-600 font-medium">Template Suffix:</span> 
+                <span className="ml-2 text-slate-700">{item.templateSuffix || 'None'}</span>
+              </div>
+              <div><span className="text-slate-600 font-medium">Gift Card Template:</span> 
+                <span className="ml-2 text-slate-700">{item.giftCardTemplateSuffix || 'None'}</span>
+              </div>
+              <div><span className="text-slate-600 font-medium">Product ID:</span> 
+                <span className="ml-2 font-mono text-xs text-slate-700">{item.id || 'Not assigned'}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {item.seo?.description && (
-        <div>
-          <h5 className="text-sm font-medium text-slate-700 mb-1">Description</h5>
-          <p className="text-sm text-slate-600">{item.seo.description}</p>
+      {/* Enhanced Metrics Dashboard */}
+      <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-6 border border-slate-200">
+        <h5 className="text-sm font-semibold text-slate-800 mb-4">Product Overview</h5>
+        <div className="grid grid-cols-4 gap-6">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-600">{totalVariants}</div>
+            <div className="text-xs text-slate-600 font-medium">Variants</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">{totalImages}</div>
+            <div className="text-xs text-slate-600 font-medium">Images</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-600">{totalOptions}</div>
+            <div className="text-xs text-slate-600 font-medium">Options</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-orange-600">{totalMetafields}</div>
+            <div className="text-xs text-slate-600 font-medium">Metafields</div>
+          </div>
         </div>
-      )}
+      </div>
 
-      {item.tags && item.tags.length > 0 && (
+      {/* Product Description */}
+      <div>
+        <h5 className="text-sm font-semibold text-slate-800 mb-2">Description</h5>
+        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+          {item.descriptionHtml ? (
+            <div className="text-sm text-slate-700" dangerouslySetInnerHTML={{ 
+              __html: item.descriptionHtml.replace(/<[^>]*>/g, '') 
+            }} />
+          ) : (
+            <div className="text-sm text-slate-500 italic">No description provided</div>
+          )}
+        </div>
+      </div>
+
+      {/* SEO Information */}
+      <div>
+        <h5 className="text-sm font-semibold text-slate-800 mb-2">SEO Settings</h5>
+        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+          {item.seo ? (
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">SEO Title:</span>
+                <p className="text-sm text-slate-900 mt-1">{item.seo.title || 'Not set'}</p>
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Meta Description:</span>
+                <p className="text-sm text-slate-900 mt-1">{item.seo.description || 'Not set'}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-slate-500 italic">No SEO settings configured</div>
+          )}
+        </div>
+      </div>
+
+      {/* Product Options */}
+      {totalOptions > 0 && (
         <div>
-          <h5 className="text-sm font-medium text-slate-700 mb-1">Tags</h5>
-          <div className="flex flex-wrap gap-1">
-            {item.tags.map((tag: string, index: number) => (
-              <span key={index} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded">
-                {tag}
-              </span>
+          <h5 className="text-sm font-semibold text-slate-800 mb-2">Product Options ({totalOptions})</h5>
+          <div className="space-y-3">
+            {item.productOptions.map((option: any, index: number) => (
+              <div key={index} className="bg-white p-4 rounded-lg border border-slate-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h6 className="font-semibold text-slate-900">{option.name}</h6>
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
+                    Position: {option.position}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {option.values?.map((value: any, valueIndex: number) => (
+                    <span key={valueIndex} className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-medium">
+                      {value.name}
+                    </span>
+                  )) || <span className="text-slate-500 italic text-sm">No values defined</span>}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* Tags */}
+      <div>
+        <h5 className="text-sm font-semibold text-slate-800 mb-2">Tags</h5>
+        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+          {item.tags && item.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {item.tags.map((tag: string, index: number) => (
+                <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-500 italic">No tags assigned</div>
+          )}
+        </div>
+      </div>
+
+      {/* All Product Images */}
+      {totalImages > 0 && (
+        <div>
+          <h5 className="text-sm font-semibold text-slate-800 mb-2">Product Images ({totalImages})</h5>
+          <div className="bg-white p-4 rounded-lg border border-slate-200">
+            <div className="grid grid-cols-6 gap-4">
+              {item.files.map((file: any, index: number) => (
+                <div key={index} className="space-y-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={file.originalSource}
+                    alt={file.alt || `Product image ${index + 1}`}
+                    className="w-full h-20 object-cover rounded border border-slate-200"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                  <div className="text-xs text-slate-600 space-y-1">
+                    <div className="font-medium truncate">{file.filename}</div>
+                    <div className="text-slate-500">{file.contentType}</div>
+                    <div className="text-slate-400 truncate" title={file.alt}>{file.alt || 'No alt text'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* All Variants */}
       {totalVariants > 0 && (
         <div>
-          <h5 className="text-sm font-medium text-slate-700 mb-2">Variants ({totalVariants})</h5>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {item.variants.slice(0, 5).map((variant: any, index: number) => (
-              <div key={index} className="flex justify-between items-center text-xs bg-slate-50 p-2 rounded">
-                <span className="text-slate-700">{variant.optionValues?.[0]?.name || `Variant ${index + 1}`}</span>
-                <span className="font-medium text-slate-900">{variant.price} DKK</span>
+          <h5 className="text-sm font-semibold text-slate-800 mb-2">Product Variants ({totalVariants})</h5>
+          <div className="space-y-3">
+            {item.variants.map((variant: any, index: number) => (
+              <div key={index} className="bg-white p-4 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <h6 className="font-semibold text-slate-900 mb-2">
+                      {variant.optionValues?.map((ov: any) => ov.name).join(' / ') || `Variant ${index + 1}`}
+                    </h6>
+                    <div className="space-y-1 text-sm">
+                      <div><span className="text-slate-600">SKU:</span> <span className="font-mono text-xs">{variant.sku || 'Not set'}</span></div>
+                      <div><span className="text-slate-600">Barcode:</span> <span className="font-mono text-xs">{variant.barcode || 'Not set'}</span></div>
+                      <div><span className="text-slate-600">Taxable:</span> 
+                        <span className={`ml-1 ${variant.taxable ? 'text-green-600' : 'text-slate-600'}`}>
+                          {variant.taxable ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h6 className="font-semibold text-slate-900 mb-2">Pricing</h6>
+                    <div className="space-y-1 text-sm">
+                      <div><span className="text-slate-600">Price:</span> <span className="font-bold text-green-600">${variant.price || '0.00'}</span></div>
+                      <div><span className="text-slate-600">Compare At:</span> 
+                        <span className="ml-1">{variant.compareAtPrice ? `$${variant.compareAtPrice}` : 'Not set'}</span>
+                      </div>
+                      <div><span className="text-slate-600">Tax Code:</span> 
+                        <span className="ml-1 font-mono text-xs">{variant.taxCode || 'Default'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h6 className="font-semibold text-slate-900 mb-2">Inventory</h6>
+                    <div className="space-y-1 text-sm">
+                      <div><span className="text-slate-600">Policy:</span> 
+                        <span className={`ml-1 px-2 py-0.5 rounded text-xs ${
+                          variant.inventoryPolicy === 'DENY' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {variant.inventoryPolicy || 'Not set'}
+                        </span>
+                      </div>
+                      <div><span className="text-slate-600">Tracked:</span> 
+                        <span className={`ml-1 ${variant.inventoryItem?.tracked ? 'text-green-600' : 'text-slate-600'}`}>
+                          {variant.inventoryItem?.tracked ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div><span className="text-slate-600">Cost:</span> 
+                        <span className="ml-1">{variant.inventoryItem?.cost ? `$${variant.inventoryItem.cost}` : 'Not set'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Variant Option Values */}
+                {variant.optionValues && variant.optionValues.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-100">
+                    <h6 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">Option Values</h6>
+                    <div className="flex flex-wrap gap-2">
+                      {variant.optionValues.map((optionValue: any, ovIndex: number) => (
+                        <div key={ovIndex} className="bg-blue-50 text-blue-800 px-2 py-1 rounded text-xs">
+                          <span className="font-medium">{optionValue.optionName}:</span> {optionValue.name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Variant Metafields */}
+                {variant.metafields && variant.metafields.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-100">
+                    <h6 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                      Variant Metafields ({variant.metafields.length})
+                    </h6>
+                    <div className="space-y-1">
+                      {variant.metafields.map((field: any, fieldIndex: number) => (
+                        <div key={fieldIndex} className="text-xs bg-slate-50 p-2 rounded">
+                          <span className="font-mono text-slate-600">{field.namespace}.{field.key}:</span>
+                          <span className="ml-2 text-slate-900">{field.value}</span>
+                          <span className="ml-2 text-slate-500">({field.type})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
-            {totalVariants > 5 && (
-              <div className="text-xs text-slate-500 text-center">+ {totalVariants - 5} more variants</div>
-            )}
+          </div>
+        </div>
+      )}
+
+      {/* All Metafields */}
+      {totalMetafields > 0 && (
+        <div>
+          <h5 className="text-sm font-semibold text-slate-800 mb-2">Product Metafields ({totalMetafields})</h5>
+          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div className="max-h-96 overflow-y-auto">
+              <div className="divide-y divide-slate-100">
+                {item.metafields.map((field: any, index: number) => (
+                  <div key={index} className="p-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="font-mono text-sm font-medium text-blue-600">
+                            {field.namespace}.{field.key}
+                          </span>
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded font-medium">
+                            {field.type}
+                          </span>
+                        </div>
+                        <div className="text-sm text-slate-900 break-all">
+                          {typeof field.value === 'string' && field.value.length > 200 ? 
+                            `${field.value.substring(0, 200)}...` : 
+                            String(field.value)
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -582,11 +837,11 @@ export default function PreviewClient({ projectId }: PreviewClientProps) {
                                 {viewMode === 'context' ? (
                                   renderContextView(item.body || item, selectedType)
                                 ) : (
-                                  <div className="!bg-slate-50 !border-slate-200 border rounded p-3 overflow-x-auto" style={{ backgroundColor: '#f8fafc' }}>
-                                    <code className="!text-slate-800 text-xs font-mono whitespace-pre-wrap block !bg-transparent" style={{ color: '#1e293b', backgroundColor: 'transparent' }}>
-                                      {JSON.stringify(item.body || item, null, 2)}
-                                    </code>
-                                  </div>
+                                  <JsonViewer 
+                                    data={item.body || item} 
+                                    className="max-h-96"
+                                    maxDepth={8}
+                                  />
                                 )}
                               </div>
                             )}
